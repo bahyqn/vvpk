@@ -27,19 +27,61 @@ func parseVPKv1(f *os.File) (VpkArchive, error) {
 	}
 
 	treeReader := io.LimitReader(f, int64(treeSize))
+	err := walkV1Entries(treeReader, func(entry Metadata) error {
+		vpkArchive.Entries = append(vpkArchive.Entries, entry)
+		return nil
+	})
+	if err != nil {
+		return vpkArchive, err
+	}
+
+	return vpkArchive, nil
+}
+
+func VerifyBoundary_v1(f *os.File) (bool, error) {
+	var headerBuf [12]byte
+
+	if _, err := io.ReadFull(f, headerBuf[:]); err != nil {
+		return false, fmt.Errorf("read v1 header failed: %w", err)
+	}
+
+	treeSize := binary.LittleEndian.Uint32(headerBuf[8:12])
+	treeReader := io.LimitReader(f, int64(treeSize))
+
+	info, err := f.Stat()
+	if err != nil {
+		return false, fmt.Errorf("stat vpk failed: %w", err)
+	}
+
+	var metadata Metadata
+	err = walkV1Entries(treeReader, func(entry Metadata) error {
+		if entry.ArchiveIndex == 0x7fff &&
+			int64(entry.EntryOffset)+int64(entry.EntryLength) > int64(metadata.EntryOffset)+int64(metadata.EntryLength) {
+			metadata = entry
+		}
+		return nil
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return calculateMaxOffsetCRC(f, metadata, info.Size(), int64(12+treeSize))
+}
+
+func walkV1Entries(r io.Reader, visit func(Metadata) error) error {
 	var ext, fpath string
-	state := 0 // 0: extension, 1: path, 2: filename
+	state := 0
 
 	for {
-		name, err := readNullTerminatedString(treeReader)
+		name, err := readNullTerminatedString(r)
 		if err != nil {
-			return vpkArchive, err
+			return err
 		}
 
 		switch state {
 		case 0:
 			if name == "" {
-				return vpkArchive, nil
+				return nil
 			}
 			ext = name
 			state = 1
@@ -62,96 +104,15 @@ func parseVPKv1(f *os.File) (VpkArchive, error) {
 				continue
 			}
 
-			entry, err := readV1Entry(treeReader, ext, fpath, name)
+			entry, err := readV1Entry(r, ext, fpath, name)
 			if err != nil {
-				return vpkArchive, err
+				return err
 			}
-			vpkArchive.Entries = append(vpkArchive.Entries, entry)
-		}
-	}
-}
-
-func VerifyBoundary_v1(f *os.File) (bool, error) {
-	var headerBuf [12]byte
-
-	if _, err := io.ReadFull(f, headerBuf[:]); err != nil {
-		return false, fmt.Errorf("read v1 header failed: %w", err)
-	}
-
-	treeSize := binary.LittleEndian.Uint32(headerBuf[8:12])
-
-	treeReader := io.LimitReader(f, int64(treeSize))
-
-	var metadata Metadata = Metadata{}
-	var ext, fpath, filename string
-
-	info, err := f.Stat()
-
-	if err != nil {
-		return false, fmt.Errorf("stat vpk failed: %w", err)
-	}
-
-	fileSize := info.Size()
-
-	for {
-		if ext == "" {
-			var err error
-			ext, err = readNullTerminatedString(treeReader)
-			if err != nil || ext == "" {
-				break
+			if err := visit(entry); err != nil {
+				return err
 			}
 		}
-
-		if fpath == "" {
-			var err error
-			fpath, err = readNullTerminatedString(treeReader)
-			if err != nil {
-				return false, err
-			}
-
-			if fpath == "" {
-				ext = ""
-				continue
-			}
-
-			if fpath == " " {
-				fpath = ""
-			}
-		}
-
-		var err error
-		filename, err = readNullTerminatedString(treeReader)
-		if err != nil {
-			return false, err
-		}
-
-		if filename == "" {
-			fpath = ""
-			continue
-		}
-
-		if filename == " " {
-			continue
-		}
-
-		entry, err := readV1Entry(treeReader, ext, fpath, filename)
-		if err != nil {
-			return false, err
-		}
-
-		if entry.ArchiveIndex == 0x7fff &&
-			int64(entry.EntryOffset)+int64(entry.EntryLength) > int64(metadata.EntryOffset)+int64(metadata.EntryLength) {
-			metadata = entry
-		}
 	}
-
-	finish, err := calculateMaxOffsetCRC(f, metadata, int64(fileSize), int64(12+treeSize))
-
-	if !finish {
-		return false, err
-	}
-
-	return true, nil
 }
 
 func readV1Entry(r io.Reader, ext, path, filename string) (Metadata, error) {
