@@ -17,15 +17,20 @@ func TestOpenAllVpk(t *testing.T) {
 		panic(err)
 	}
 
-	for idx, item := range tvpks {
-		vpkv1, err := OpenVpk(item)
+	for fileIdx, item := range tvpks {
+		_, err := OpenVpk(item)
 
 		if err != nil {
 			t.Fatalf("open %q failed: %v", item, err)
 		}
 
-		len := vpkv1.LengthValidate()
-		fmt.Printf("%d -> len: %d \n", idx, len)
+		fmt.Printf("%d ---> %s\n", fileIdx, item)
+
+		// for idx, item := range vpkv1.Entries {
+		// 	fmt.Printf("%d: %s ---> %s --> %s\n", idx, item.Extension, item.Path, item.Filename)
+		// }
+
+		// fmt.Println()
 	}
 }
 
@@ -35,7 +40,7 @@ func TestOpenVpk(t *testing.T) {
 	vpkv1, err := OpenVpk(modPath)
 
 	if err != nil {
-		panic("xxxxxxxxxx")
+		panic(err)
 	}
 
 	fmt.Println(vpkv1.Version)
@@ -51,7 +56,7 @@ func TestVerifyBoundary(t *testing.T) {
 	finish, err := VerifyBoundary(modPath)
 
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
 
 	fmt.Println(finish)

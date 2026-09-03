@@ -27,95 +27,48 @@ func parseVPKv1(f *os.File) (VpkArchive, error) {
 	}
 
 	treeReader := io.LimitReader(f, int64(treeSize))
-	var ext, fpath, filename string
+	var ext, fpath string
+	state := 0 // 0: extension, 1: path, 2: filename
 
 	for {
-		if ext == "" {
-			var err error
-			ext, err = readNullTerminatedString(treeReader)
-			if err != nil || ext == "" {
-				break // 目录树解析完毕
-			}
+		name, err := readNullTerminatedString(treeReader)
+		if err != nil {
+			return vpkArchive, err
 		}
 
-		if fpath == "" {
-			var err error
-			fpath, err = readNullTerminatedString(treeReader)
-			if err != nil {
-				return vpkArchive, err
+		switch state {
+		case 0:
+			if name == "" {
+				return vpkArchive, nil
 			}
-
-			if fpath == "" {
-				ext = ""
+			ext = name
+			state = 1
+		case 1:
+			if name == "" {
+				state = 0
 				continue
 			}
-
+			fpath = name
 			if fpath == " " {
 				fpath = ""
 			}
-		}
+			state = 2
+		case 2:
+			if name == "" {
+				state = 1
+				continue
+			}
+			if name == " " {
+				continue
+			}
 
-		var err error
-		filename, err = readNullTerminatedString(treeReader)
-		if err != nil {
-			return vpkArchive, err
+			entry, err := readV1Entry(treeReader, ext, fpath, name)
+			if err != nil {
+				return vpkArchive, err
+			}
+			vpkArchive.Entries = append(vpkArchive.Entries, entry)
 		}
-
-		if filename == "" {
-			fpath = ""
-			continue
-		}
-
-		if filename == " " {
-			continue
-		}
-
-		crc, err := readUnit[uint32](treeReader)
-		if err != nil {
-			return vpkArchive, err
-		}
-
-		// preload, err := readUnit[uint16](treeReader)
-		// if err != nil {
-		// 	return vpkArchive, err
-		// }
-
-		preload := make([]byte, 2)
-		if _, err := io.ReadFull(f, preload); err != nil {
-			return vpkArchive, fmt.Errorf("read v1 preload data failed: %w", err)
-		}
-
-		archiveIndex, err := readUnit[uint16](treeReader)
-		if err != nil {
-			return vpkArchive, err
-		}
-		entryOffset, err := readUnit[uint32](treeReader)
-		if err != nil {
-			return vpkArchive, err
-		}
-		entryLength, err := readUnit[uint32](treeReader)
-		if err != nil {
-			return vpkArchive, err
-		}
-		terminator, err := readUnit[uint16](treeReader)
-		if err != nil {
-			return vpkArchive, err
-		}
-
-		vpkArchive.Entries = append(vpkArchive.Entries, Metadata{
-			Extension:    ext,
-			Path:         fpath,
-			Filename:     filename,
-			Checksum:     crc,
-			Preload:      preload,
-			ArchiveIndex: archiveIndex,
-			EntryOffset:  entryOffset,
-			EntryLength:  entryLength,
-			Tail:         terminator,
-		})
 	}
-
-	return vpkArchive, nil
 }
 
 func VerifyBoundary_v1(f *os.File) (bool, error) {
