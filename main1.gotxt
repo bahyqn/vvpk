@@ -1,0 +1,287 @@
+package main
+
+import (
+	"encoding/binary"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+)
+
+var modPAth = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop"
+
+type VPKHeader struct {
+	Signature uint32
+	Version   uint32
+	TreeSize  uint32
+}
+
+func main1() {
+	// var ExtensionRules = map[string]int{
+	// 	"bsp": 1, // 地图
+	// 	"mdl": 2, // 模型
+	// 	"vmt": 3, // 材质
+	// 	"vtf": 3, // 材质
+	// 	"wav": 4, // 声音
+	// 	"mp3": 4, // 声音
+	// }
+
+	// printTreeSizeBinary(1, filepath.Join(modPAth, "397962151.vpk"))
+	// printTreeSizeBinary(1, filepath.Join(modPAth, "719312782.vpk"))
+
+	// pattern := filepath.Join(modPAth, "*.vpk")
+
+	// vpks, err := filepath.Glob(pattern)
+
+	// if err != nil {
+	// 	panic("xxxx")
+	// }
+
+	// flash light
+	// printTreeSizeBinary(1, filepath.Join(modPAth, "323165424.vpk"))
+	// silent hill nurse
+	// for idx, vpk := range vpks {
+	// 	if idx >= 1 {
+	// 		break
+	// 	}
+	// 	// fmt.Printf("%d: %s \n", idx, vpk)
+	// 	// printTreeSizeBinary(idx, vpk)
+	// vpk := filepath.Join(modPAth, "397962151.vpk")
+	// vpk := filepath.Join(modPAth, "121086524.vpk")
+
+	// vpk := filepath.Join(modPAth, "719312782.vpk")
+	vpk := filepath.Join(modPAth, "121086524.vpk")
+	// bytes, err := ParseVPKFiles(vpk)
+	bytes, err := parse1(vpk)
+
+	if err != nil {
+		panic("failed parse")
+	}
+
+	for idx, el := range bytes {
+		fmt.Printf("%d: %s \n", idx, el)
+	}
+	// }
+
+}
+
+func printTreeSizeBinary(idx int, path string) {
+	file, err := os.Open(path)
+
+	if err != nil {
+		fmt.Println("open: ", idx)
+	}
+	defer file.Close()
+
+	var header VPKHeader
+
+	if err := binary.Read(file, binary.LittleEndian, &header); err != nil {
+		panic("failed to parse vpk")
+	}
+
+	if header.Signature != 0x55aa1234 {
+		panic("无效的 VPK 文件签名")
+	}
+
+	treeReader := io.LimitReader(file, int64(header.TreeSize))
+
+	// var fileList []string
+
+	var buf []byte
+
+	for {
+		b := make([]byte, 1)
+
+		_, err := treeReader.Read(b)
+
+		if err == io.EOF || err != nil {
+			// panic("err")
+			break
+		}
+
+		// if b[0] == 0 {
+		// 	break
+		// }
+		buf = append(buf, b[0])
+	}
+	fmt.Println(buf)
+}
+
+func readNullTerminatedString(r io.Reader) (string, error) {
+	var buf []byte
+	for {
+		b := make([]byte, 1)
+		_, err := r.Read(b)
+		if err != nil {
+			return "", err
+		}
+		if b[0] == 0 { // 遇到 \0 停止
+			break
+		}
+		buf = append(buf, b[0])
+	}
+	return string(buf), nil
+}
+
+func ParseVPKFiles(filePath string) ([]string, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	// 1. 读取 VPK 头
+	var header VPKHeader
+	if err := binary.Read(file, binary.LittleEndian, &header); err != nil {
+		return nil, fmt.Errorf("读取 VPK 头失败: %v", err)
+	}
+
+	if header.Signature != 0x55aa1234 {
+		return nil, fmt.Errorf("无效的 VPK 文件签名")
+	}
+
+	fmt.Println(header.TreeSize)
+	// 2. 限制只读取目录树区域的数据
+	treeReader := io.LimitReader(file, int64(header.TreeSize))
+
+	var fileList []string
+
+	// 3. 循环解析 VPK 目录树 (Tree Parsing)
+	// VPK 目录结构顺序: Extension -> Path -> FileName
+	for {
+		// 第一层：文件扩展名 (例如 "vmt", "bsp", "mdl")
+		ext, err := readNullTerminatedString(treeReader)
+		if err == io.EOF {
+			break // 读到树尾部
+		}
+
+		// if len(ext) == 1 {
+		// 	fmt.Print(ext)
+		// 	fileList = append(fileList, ext)
+		// }
+
+		for {
+			// 第二层：文件夹路径 (例如 "materials/models/bcn")
+			path, err := readNullTerminatedString(treeReader)
+
+			if err != nil {
+				break
+			}
+
+			for {
+
+				// 第三层：文件名 (例如 "ambulance")
+				fileName, err := readNullTerminatedString(treeReader)
+				if err != nil || fileName == "" {
+					break
+				}
+
+				// 紧接着这三个字符串后面的是固定的文件条目元数据 (Entry Metadata)
+				// 包括: CRC(4B), PreloadBytes(2B), ArchiveIndex(2B), EntryOffset(4B), EntryLength(4B), Terminator(2B)
+				var metadata [18]byte
+				if _, err := io.ReadFull(treeReader, metadata[:]); err != nil {
+					return nil, err
+				}
+
+				// 拼接成完整的虚拟路径
+				var fullPath string
+				if path == " " {
+					fullPath = fmt.Sprintf("%s.%s", fileName, ext)
+				} else {
+					fullPath = fmt.Sprintf("%s/%s.%s", path, fileName, ext)
+				}
+
+				fileList = append(fileList, fullPath)
+			}
+		}
+	}
+
+	return fileList, nil
+}
+
+func parse1(filePath string) ([]string, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	// 1. 读取 VPK 头
+	var header VPKHeader
+	if err := binary.Read(file, binary.LittleEndian, &header); err != nil {
+		return nil, fmt.Errorf("读取 VPK 头失败: %v", err)
+	}
+
+	if header.Signature != 0x55aa1234 {
+		return nil, fmt.Errorf("无效的 VPK 文件签名")
+	}
+
+	fmt.Println(header.TreeSize)
+	// 2. 限制只读取目录树区域的数据
+	treeReader := io.LimitReader(file, int64(header.TreeSize))
+
+	var fileList []string
+
+	var ext, fpath, filename string
+
+	for {
+		if ext == "" {
+			var err error
+
+			ext, err = readNullTerminatedString(treeReader)
+
+			// 255 255 0 [0 0]
+			if err != nil || ext == "" {
+				break
+			}
+		}
+
+		if fpath == "" {
+			var err error
+
+			fpath, err = readNullTerminatedString(treeReader)
+
+			if err != nil {
+				return fileList, err
+			}
+
+			// ...... 0
+			if fpath == "" {
+				ext = ""
+				continue
+			}
+
+			// 32 0 -> in common, next bytes will be addoninfo
+			if fpath == " " {
+				fpath = ""
+			}
+		}
+
+		var err error
+		filename, err = readNullTerminatedString(treeReader)
+
+		if err != nil {
+			return fileList, err
+		}
+
+		// 255 255 0
+		if filename == "" {
+			fpath = ""
+			continue
+		}
+
+		// 32 0
+		if filename == " " {
+			continue
+		}
+
+		var metadata [18]byte
+
+		if _, err = io.ReadFull(treeReader, metadata[:]); err != nil {
+			panic("18 bytes")
+		}
+
+		fileList = append(fileList, filepath.Join(fpath, filename+"."+ext))
+	}
+	return fileList, nil
+}

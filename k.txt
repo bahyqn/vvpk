@@ -1,0 +1,71 @@
+123DF813FCAF94D641276D61B988CAF8
+
+
+
+signature
+1437209140
+
+version
+1
+
+treeSize
+[extension] ---> [path] ---> [fileName]
+[
+    118 116 102 0
+    v   t   f   \0  (Level 1: File Extension "vtf")
+
+    109 97 116 101 114 105 97 108 115 47 101 102 102 101 99 116 115 0
+    m   a   t   e   r   i   a   l  s  /   e   f   f   e   c  t   s  \0  (Level 2: Directory Path "materials/effects")
+
+    102 108 97 115 104 108 105 103 104 116 48 48 49 0
+    f   l   a   s   h   l   i   g   h   t  0  0  1  \0  (Level 3: File Name "flashlight001")
+
+    [176 236 123 118] 0 0
+    [CRC Checksum 4 bytes: 0x767BECB0 (1987833008) - Used to verify data integrity and detect corruption]
+    [PreloadBytes 2 bytes: 0x0000 = 0 - Number of bytes stored directly in the tree header]
+
+    [255 127] 226 1 0 0
+    [ArchiveIndex 2 bytes: 0x7FFF = 32767 - Specifies which archive split file the asset is in; 32767 means inlined in the current _dir file]
+    [EntryOffset 4 bytes (part 1): 0x01E2 = 482 - The starting byte position of the file content inside the archive]
+
+    207 0
+    [EntryOffset 4 bytes (part 2) / EntryLength continuation]
+
+    16 0
+    [EntryLength 4 bytes: Total size of the file data in bytes]
+
+    255 255 0 0
+    [Terminator / End of file entry list for this directory]
+
+
+
+    116 120 116 0
+    t   x   t   \0  (Level 1: New File Extension "txt")
+
+    32 0
+    (Level 2: Directory path string or empty path length indicator)
+
+    97 100 100 111 110 105 110 102 111 0
+    a   d   d   o   n   i   n   f   o  \0  (Level 3: File Name "addoninfo")
+
+    [110 38 145 138] 0 0
+    [CRC Checksum 4 bytes - Used to verify data integrity]
+    [PreloadBytes 2 bytes: 0 - No preloaded data]
+
+    255 127 0 0
+    [ArchiveIndex 2 bytes: 0x7FFF - Inlined in the directory file] [EntryOffset 4 bytes (part 1)]
+
+    0 0
+    [EntryOffset 4 bytes (part 2)]
+
+    226 1 0 0
+    [EntryLength 4 bytes: Total size of the file data in bytes]
+
+    255 255 0 0 0
+    [Tree Terminator / End of the VPK directory tree structure]
+]
+
+
+
+
+

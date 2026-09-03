@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "test",
+            "command": "go test -v -count=1 .",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": ["$go"],
+            "presentation": {
+                "reveal": "always"
+            },
+            "icon": {
+                "id": "run"
+            },
+            "group": "test"
+        }
+    ]
+}

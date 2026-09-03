@@ -1,0 +1,129 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/url"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+	"sync"
+	"time"
+)
+
+var (
+	workshopCache = make(map[string]interface{})
+	cacheMutex    = &sync.Mutex{}
+	cacheFile     = "workshop_cache.json"
+)
+
+func loadCache() {
+	file, err := os.ReadFile(cacheFile)
+	if err == nil {
+		json.Unmarshal(file, &workshopCache)
+		fmt.Printf("已加载本地缓存，当前缓存条目数: %d\n", len(workshopCache))
+	}
+}
+
+func saveCache() {
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
+
+	data, _ := json.MarshalIndent(workshopCache, "", "    ")
+	os.WriteFile(cacheFile, data, 0644)
+}
+
+func fetchAndCache(apiKey string, publishedFileID string) error {
+	cacheMutex.Lock()
+	if _, exists := workshopCache[publishedFileID]; exists {
+		cacheMutex.Unlock()
+		return nil
+	}
+	cacheMutex.Unlock()
+
+	apiURL := "https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/"
+	data := url.Values{}
+	data.Set("key", apiKey)
+	data.Set("itemcount", "1")
+	data.Set("publishedfileids[0]", publishedFileID)
+
+	resp, err := http.Post(apiURL, "application/x-www-form-urlencoded", strings.NewReader(data.Encode()))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("http error: %d", resp.StatusCode)
+	}
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return err
+	}
+
+	cacheMutex.Lock()
+	workshopCache[publishedFileID] = result
+	cacheMutex.Unlock()
+
+	return nil
+}
+
+func main3() {
+	apiKey := "" // 替换为你的真实 Key
+	workshopPath := "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop"
+
+	loadCache()
+
+	// 直接通过 Glob 获取该目录下所有的 .vpk 文件
+	vpkFiles, err := filepath.Glob(filepath.Join(workshopPath, "*.vpk"))
+	if err != nil {
+		fmt.Printf("扫描目录失败: %v\n", err)
+		return
+	}
+
+	fmt.Printf("在目录中发现 %d 个 VPK 文件\n", len(vpkFiles))
+
+	// 正则用于从文件名中提取纯数字 ID（通常 Workshop 的 VPK 文件名就是其 ID，如 1767991393.vpk）
+	re := regexp.MustCompile(`(\d+)`)
+
+	successCount := 0
+	skipCount := 0
+
+	for i, filePath := range vpkFiles {
+		fileName := filepath.Base(filePath)
+		matches := re.FindStringSubmatch(fileName)
+		if len(matches) < 2 {
+			continue // 如果文件名不包含纯数字 ID 则跳过
+		}
+		id := matches[1]
+
+		// 检查缓存
+		cacheMutex.Lock()
+		_, cached := workshopCache[id]
+		cacheMutex.Unlock()
+
+		if cached {
+			skipCount++
+			continue
+		}
+
+		fmt.Printf("[%d/%d] 正在拉取 ID: %s (文件: %s)\n", i+1, len(vpkFiles), id, fileName)
+		err := fetchAndCache(apiKey, id)
+		if err != nil {
+			fmt.Printf("  -> 失败: %v\n", err)
+		} else {
+			successCount++
+			time.Sleep(200 * time.Millisecond) // 防限流延时
+		}
+
+		if (i+1)%10 == 0 {
+			saveCache()
+		}
+	}
+
+	saveCache()
+	fmt.Printf("\n同步完成！新增: %d, 跳过: %d, 最终缓存总量: %d\n", successCount, skipCount, len(workshopCache))
+}

@@ -1,0 +1,57 @@
+{
+    "rifle": { "m16": [], "scar": [], "ak47": [], "sg552": [], "m60": [] },
+    "shotgun": { "pump": [], "chrome": [], "auto": [], "spas": [] },
+    "sniper": { "hunting": [], "military": [], "scount": [], "awp": [] },
+    "smg": { "smg": [], "silenced": [], "mp5": [] },
+    "pistol": { "pistol": [], "magnum": [] },
+    "grenade launcher": [],
+    "survivors": {
+        "nick": [],
+        "rochelle": [],
+        "coach": [],
+        "eills": [],
+        "bill": [],
+        "zoey": [],
+        "louis": [],
+        "francis": []
+    },
+    "melee": {
+        "chainsaw": [],
+        "fireaxe": [],
+        "huntingknife": [],
+        "katana": [],
+        "cricket bat": [],
+        "baseball bat": [],
+        "golfclub": [],
+        "machete": [],
+        "tonfa": [],
+        "electric guitar": [],
+        "frying pan": [],
+        "crowbar": [],
+        "riotshield": []
+    },
+    "item": {
+        "first aid kit": [],
+        "defibrillator": [],
+        "adrenaline": [],
+        "pain pills": [],
+        "molotov": [],
+        "pipebomb": [],
+        "vomit Jar": [],
+        "gnome": [],
+        "cola bottles": []
+    },
+    "infected": {
+        "infected": [],
+        "boomer": [],
+        "charger": [],
+        "hunter": [],
+        "jockey": [],
+        "smoker": [],
+        "spitter": [],
+        "tank": [],
+        "witch": []
+    },
+    "sound": [],
+    "script": []
+}
