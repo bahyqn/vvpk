@@ -6,11 +6,17 @@ import (
 	"testing"
 )
 
+const (
+	WORKSHOPDIR = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop"
+	modPath1    = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/121086524.vpk"
+	modPath2    = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/121796400.vpk"
+	modPath3    = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/3646935257.vpk"
+	modPath4    = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/397962151.vpk"
+)
+
 func TestOpenAllVpk(t *testing.T) {
 
-	var workshopDir = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop"
-
-	pattern := filepath.Join(workshopDir, "*.vpk")
+	pattern := filepath.Join(WORKSHOPDIR, "*.vpk")
 
 	tvpks, err := filepath.Glob(pattern)
 	if err != nil {
@@ -35,29 +41,61 @@ func TestOpenAllVpk(t *testing.T) {
 }
 
 func TestOpenVpk(t *testing.T) {
-	var modPath = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/121086524.vpk"
 
-	vpkv1, err := OpenVpk(modPath)
+	vpkv1, err := OpenVpk(modPath1)
 
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println(vpkv1.Version)
-	// for idx, item := range vpkv1.Entries {
-	// 	fmt.Printf("%d: %s ---> %s --> %s\n", idx, item.Extension, item.Path, item.Filename)
-	// }
+	for idx, item := range vpkv1.Entries {
+		fmt.Printf("%d: %s ---> %s --> %s\n", idx, item.Extension, item.Path, item.Filename)
+	}
 }
 
 func TestVerifyBoundary(t *testing.T) {
-	// var modPath = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/121796400.vpk"
-	var modPath = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/121086524.vpk"
-
-	finish, err := VerifyBoundary(modPath)
+	ok, err := VerifyBoundary(modPath1)
 
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println(finish)
+	fmt.Println(ok)
+}
+
+func TestVerifyChecksum(t *testing.T) {
+
+	failedEntries, err := VerifyChecksums(modPath4)
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(failedEntries, err)
+}
+
+func TestVerifyChecksums(t *testing.T) {
+	pattern := filepath.Join(WORKSHOPDIR, "*.vpk")
+	tvpks, err := filepath.Glob(pattern)
+	if err != nil {
+		panic(err)
+	}
+
+	for fileIdx, path := range tvpks {
+		failedEntries, err := VerifyChecksums(path)
+
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(failedEntries)
+		fmt.Printf("%d \t %s \n\n", fileIdx, err)
+
+		// for idx, item := range vpkv1.Entries {
+		// 	fmt.Printf("%d: %s ---> %s --> %s\n", idx, item.Extension, item.Path, item.Filename)
+		// }
+
+		// fmt.Println()
+	}
 }

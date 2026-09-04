@@ -175,28 +175,83 @@ func calculateMaxOffsetCRC(f *os.File, metadata Metadata, fileSize int64, header
 		return false, fmt.Errorf("vpk truncated: physical size (%d B) < required size (%d B)", fileSize, requiredSize)
 	}
 
-	hasher := crc32.NewIEEE()
+	var calculated_crc uint32
+	calculated_crc = crc32.ChecksumIEEE(metadata.Preload)
 
-	if _, err := hasher.Write(metadata.Preload); err != nil {
-		return false, fmt.Errorf("hash preload data failed: %w", err)
+	// hasher := crc32.NewIEEE()
+
+	// if _, err := hasher.Write(metadata.Preload); err != nil {
+	// 	return false, fmt.Errorf("hash preload data failed: %w", err)
+	// }
+
+	if err := ensureDataSectionStart(f, headerSiize); err != nil {
+		return false, err
 	}
-
 	if metadata.EntryLength > 0 {
+
 		if _, err := f.Seek(headerSiize+int64(metadata.EntryOffset), io.SeekStart); err != nil {
 			return false, fmt.Errorf("seek to target payload failed: %w", err)
 		}
 
-		if _, err := io.CopyN(hasher, f, int64(metadata.EntryLength)); err != nil {
-			return false, fmt.Errorf("read payload data failed: %w", err)
+		// if _, err := io.CopyN(hasher, f, int64(metadata.EntryLength)); err != nil {
+		// 	return false, fmt.Errorf("read payload data failed: %w", err)
+		// }
+
+		buf := make([]byte, metadata.EntryLength)
+		if _, err := io.ReadFull(f, buf); err != nil {
+			return false, fmt.Errorf("Failed to read bytes wiith maxOffset")
 		}
+
+		calculated_crc = crc32.ChecksumIEEE(buf)
 	}
 
-	if calculatedCRC := hasher.Sum32(); calculatedCRC != metadata.Checksum {
-		return false, fmt.Errorf("crc mismatch: calculated 0x%08X != expected 0x%08X", calculatedCRC, metadata.Checksum)
+	if calculated_crc != metadata.Checksum {
+		return false, fmt.Errorf("crc mismatch: calculated 0x%08X != expected 0x%08X", calculated_crc, metadata.Checksum)
 	}
 	return true, nil
 }
 
-func calculateEntryCRC(file *os.File) {
+func calculateEntryCRC_v1(f *os.File, failedEntries []FailedEntry) ([]FailedEntry, error) {
+	var headerBuf [12]byte
 
+	if _, err := io.ReadFull(f, headerBuf[:]); err != nil {
+		return failedEntries, fmt.Errorf("read v1 header failed: %w", err)
+	}
+
+	treeSize := binary.LittleEndian.Uint32(headerBuf[8:12])
+	treeReader := io.LimitReader(f, int64(treeSize))
+
+	var vpkArchive VpkArchive
+	err := walkV1Entries(treeReader, func(entry Metadata) error {
+		vpkArchive.Entries = append(vpkArchive.Entries, entry)
+		return nil
+	})
+
+	if err != nil {
+		return failedEntries, err
+	}
+
+	SortByOffset(vpkArchive.Entries)
+
+	if err = ensureDataSectionStart(f, int64(12+treeSize)); err != nil {
+		return failedEntries, err
+	}
+
+	for _, item := range vpkArchive.Entries {
+		// fmt.Printf("%d: \t %s \t %s \t %s \t ---> offset: %d, length: %d\n", idx, item.Extension, item.Path, item.Filename, item.EntryOffset, item.EntryLength)
+
+		same, crc, _ := calculateCRC(f, item)
+
+		// fmt.Printf("crc: %d\ncalculated_crc: %d\n\n", item.Checksum, crc)
+		if !same {
+			failedEntries = append(failedEntries, FailedEntry{
+				MetaData:      item,
+				CalculatedCRC: crc,
+				Error:         err,
+			})
+			// fmt.Printf("expected crc: %d, calculated crc: %d\n\n", item.Checksum, crc)
+		}
+	}
+
+	return failedEntries, nil
 }

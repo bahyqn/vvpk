@@ -2,7 +2,6 @@ package vvpk
 
 import (
 	"fmt"
-	"io"
 	"os"
 )
 
@@ -26,9 +25,9 @@ func VerifyBoundary(path string) (bool, error) {
 		return false, err
 	}
 
-	if _, err := file.Seek(0, io.SeekStart); err != nil {
-		return false, fmt.Errorf("seek vpk header failed: %w", err)
-	}
+	// if _, err := file.Seek(0, io.SeekStart); err != nil {
+	// 	return false, fmt.Errorf("seek vpk header failed: %w", err)
+	// }
 
 	switch version {
 	case 1:
@@ -48,4 +47,27 @@ func VerifyBoundary(path string) (bool, error) {
 // Note: This operation reads the full payload section from storage and may be I/O
 // intensive for large archives.
 // Returns an error immediately upon encountering the first corrupted entry or read failure.
-func VerifyChecksums(path string) {}
+func VerifyChecksums(path string) ([]FailedEntry, error) {
+	var failedEntries []FailedEntry
+
+	file, err := os.Open(path)
+
+	if err != nil {
+		return failedEntries, fmt.Errorf("open vpk failed: %w", err)
+	}
+	defer file.Close()
+
+	version, err := detectVersion(file)
+	if err != nil {
+		return failedEntries, err
+	}
+
+	switch version {
+	case 1:
+		return calculateEntryCRC_v1(file, failedEntries)
+	case 2:
+		return calculateEntryCRC_v2(file, failedEntries)
+	default:
+		return failedEntries, fmt.Errorf("unsupported vpk version: %d", version)
+	}
+}

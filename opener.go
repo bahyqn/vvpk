@@ -9,10 +9,10 @@ import (
 	"unsafe"
 )
 
-func detectVersion(r io.Reader) (uint32, error) {
+func detectVersion(f *os.File) (uint32, error) {
 	var headerBuf [12]byte
 
-	if _, err := io.ReadFull(r, headerBuf[:]); err != nil {
+	if _, err := io.ReadFull(f, headerBuf[:]); err != nil {
 		return 0, fmt.Errorf("read header failed: %w", err)
 	}
 
@@ -25,6 +25,10 @@ func detectVersion(r io.Reader) (uint32, error) {
 
 	if version != 1 && version != 2 {
 		return 0, fmt.Errorf("unsupported vpk version: %d", version)
+	}
+
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
+		return 0, fmt.Errorf("seek vpk header failed: %w", err)
 	}
 
 	return version, nil
@@ -72,9 +76,9 @@ func OpenVpk(path string) (VpkArchive, error) {
 		return VpkArchive{}, err
 	}
 
-	if _, err := file.Seek(0, io.SeekStart); err != nil {
-		return VpkArchive{}, fmt.Errorf("seek vpk header failed: %w", err)
-	}
+	// if _, err := file.Seek(0, io.SeekStart); err != nil {
+	// 	return VpkArchive{}, fmt.Errorf("seek vpk header failed: %w", err)
+	// }
 
 	switch version {
 	case 1:

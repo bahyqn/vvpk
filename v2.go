@@ -15,3 +15,7 @@ func VerifyBoundary_v2(f *os.File) (bool, error) {
 
 	return false, fmt.Errorf("")
 }
+
+func calculateEntryCRC_v2(f *os.File, failedEntries []FailedEntry) ([]FailedEntry, error) {
+	return failedEntries, nil
+}

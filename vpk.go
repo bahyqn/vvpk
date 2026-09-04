@@ -1,5 +1,14 @@
 package vvpk
 
+import (
+	"cmp"
+	"fmt"
+	"hash/crc32"
+	"io"
+	"os"
+	"slices"
+)
+
 type VpkArchive struct {
 	Signature uint32
 	Version   uint32
@@ -31,6 +40,12 @@ type Metadata struct {
 	Tail uint16
 }
 
+type FailedEntry struct {
+	MetaData      Metadata
+	CalculatedCRC uint32
+	Error         error
+}
+
 func (vpk VpkArchive) LengthValidate() uint32 {
 	var len uint32
 
@@ -42,4 +57,45 @@ func (vpk VpkArchive) LengthValidate() uint32 {
 	}
 
 	return len
+}
+
+func SortByOffset(metadata []Metadata) {
+	slices.SortFunc(metadata, func(a, b Metadata) int {
+		return cmp.Compare(a.EntryOffset, b.EntryOffset)
+	})
+}
+
+func ensureDataSectionStart(f *os.File, expectedOffset int64) error {
+	currentPos, _ := f.Seek(0, io.SeekCurrent)
+
+	if currentPos == expectedOffset {
+		return nil
+	}
+
+	if _, err := f.Seek(expectedOffset, io.SeekStart); err != nil {
+		return fmt.Errorf("failed to align stream to offset %d: %w", expectedOffset, err)
+	}
+
+	return nil
+}
+
+func calculateCRC(f *os.File, metadata Metadata) (bool, uint32, error) {
+	var calculated_crc uint32
+
+	if metadata.ArchiveIndex != 0x7fff {
+		calculated_crc = crc32.ChecksumIEEE(metadata.Preload)
+	} else {
+		tmp_buf := make([]byte, metadata.EntryLength)
+
+		if _, err := io.ReadFull(f, tmp_buf); err != nil {
+			return false, 0, fmt.Errorf("seek went wrong place.")
+		}
+
+		calculated_crc = crc32.ChecksumIEEE(tmp_buf)
+	}
+
+	if metadata.Checksum != calculated_crc {
+		return false, calculated_crc, fmt.Errorf("crc was not same")
+	}
+	return true, calculated_crc, nil
 }
