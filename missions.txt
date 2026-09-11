@@ -1,0 +1,143 @@
+"mission"
+{
+	"Name"			"urbanflight"
+	"Version"		"12"
+	"Author"		"The Rabbit"
+	"Website"		"http://steamcommunity.com/sharedfiles/filedetails/?id=121086524"
+ 
+	"DisplayTitle"		"Urban Flight"
+	"Description"		"The city is burning. As ash falls, the survivors attempt to flee to a small military airfield on the other side of the river. It's a straight path down the main boulevard, but nothing is ever simple. Crashed cars, blazing fires, police barricades, and the city itself all stand in their way."
+	"Image"			"maps/uf0_poster"
+	"OuttroImage"		"vgui/OutroTitle_UrbanFlight"
+ 
+	"x360ctx"		"5"
+ 
+	"no_wpn_restore"	"1"		// on player wipe, don't keep any weapons
+	"meleeweapons"		"machete;fireaxe;frying_pan;cricket_bat;baseball_bat;knife;crowbar;golfclub;electric_guitar;katana;tonfa"
+ 
+	// Loading poster data
+	"poster"
+	{
+		"posterImage"		        "LoadingScreen_UrbanFlight"
+		"posterImage_widescreen"	"LoadingScreen_UrbanFlight_widescreen"
+ 
+		"fullscreen"			"1"
+ 
+		"posterTitle"			"Urban Flight"
+		"posterTitle_y"			"320"
+ 
+		"posterTagline"			"No plane, no gain"
+		"posterTagline_y"		"380"
+ 
+		"l4d2_names"			"1"
+ 
+		"mechanic_player_name_x"	"9999"
+		"mechanic_player_name_y"	"9999"
+ 
+		"coach_player_name_x"		"9999"		
+		"coach_player_name_y"		"9999"	
+ 
+		"producer_player_name_x"	"9999"	
+		"producer_player_name_y"	"9999"	
+ 
+		"gambler_player_name_x"		"9999"
+		"gambler_player_name_y"		"9999"
+ 
+		"character_order"		"mechanic;coach;producer;gambler"
+	}
+
+	"modes"
+	{
+		"coop"
+		{
+			"1"
+			{
+				"Map" "uf1_boulevard"
+				"DisplayName" "1: Boulevard"
+				"Image" "maps/uf1_boulevard"
+			}
+			"2"
+			{
+				"Map" "uf2_rooftops"
+				"DisplayName" "2: Rooftops"
+				"Image" "maps/uf2_rooftops"
+			}
+			"3"
+			{
+				"Map" "uf3_harbor"
+				"DisplayName" "3: Harbor"
+				"Image" "maps/uf3_harbor"
+			}
+			"4"		
+			{
+				"Map" "uf4_airfield"
+				"DisplayName" "4: Airfield"
+				"Image" "maps/uf4_airfield"
+			}
+		}
+		"versus"
+		{
+			"1"
+			{
+				"Map" "uf1_boulevard"
+				"DisplayName" "1: Boulevard (VS)"
+				"Image" "maps/uf1_boulevard"
+				"VersusCompletionScore"	"500"
+			}
+			"2"
+			{
+				"Map" "uf2_rooftops"
+				"DisplayName" "2: Rooftops (VS)"
+				"Image" "maps/uf2_rooftops"
+				"VersusCompletionScore"	"600"
+				"versus_boss_spawning"
+				{
+					"spawn_pos_min"		"0.0"
+					"spawn_pos_max"		"0.0"
+					"tank_chance"		"0"
+					"witch_chance"		"0"
+					"witch_and_tank"	"0"
+				}
+			}
+			"3"
+			{
+				"Map" "uf3_harbor"
+				"DisplayName" "3: Harbor (VS)"
+				"Image" "maps/uf3_harbor"
+				"VersusCompletionScore"	"700"
+			}
+			"4"
+			{
+				"Map" "uf4_airfield"
+				"DisplayName" "4: Airfield (VS)"
+				"Image" "maps/uf4_airfield"
+				"VersusCompletionScore"	"800"
+			}
+		}	
+		"survival"
+		{
+			"1"
+			{
+				"Map" "uf2_rooftops"
+				"DisplayName" "Radio Station"
+				"Image" "maps/uf2_station"
+			}
+			"2"
+			{
+				"Map" "uf4_airfield"
+				"DisplayName" "Airfield"
+				"Image" "maps/uf4_hanger"
+			}
+		}	
+		"scavenge"
+		{
+			"1"
+			{
+				"Map" "uf4_airfield"
+				"DisplayName" "Airfield"
+				"Image" "maps/uf4_backarea"
+			}
+		}	
+	}
+}
+

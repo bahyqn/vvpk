@@ -1,3 +1,5 @@
+4 2 2 4 4 2 preloaddata 0 0
+
 [
 0: sound/weapons/smg_silenced/gunother/smg_silenced_deploy_1.wav 
     119 97 118 0
@@ -8,16 +10,26 @@
     s    m   g   _  s   i   l   e   n   c  e   d   _  d   e   p   l   o   y   _  1        ---> filename
     75 101 69 91
     CRC Checksum: 4 bytes
+
     0 0
     PreloadBytes: 2 bytes
+
     255 127
     ArchiveIndex: 2bytes
+
     145 186 76 1
-    EntryOffset: 6 bytes
+    EntryOffset: 4 bytes
+
     64 175 1 0
-    little-endian: lowest - highest
-    255 255 0
+    little-endian: EntryLength 4 bytes
+    255 255 2bytes
     Terminator: the path of next file doesn't same, layer 3 forloop ended -> layer 2 forloop running, and it will get new path.
+
+    if ArchiveIndex = 0x7fff & EntryLength = 0
+    preloadData
+    []]
+
+    0
 
 1: sound/weapons/smg_silenced/gunfire/smg_fire_1_incendiary.wav 
     115 111 117 110 100 47 119 101 97 112 111 110 115 47 115 109 103 95 115 105 108 101 110 99 101 100 47 103 117 110 102 105 114 101 0
@@ -36,6 +48,9 @@
     little-endian: lowest - highest
     255 255
     Terminator: same path, there's zero 0.
+
+    preloadData
+    []
 
 2: sound/weapons/smg_silenced/gunfire/smg_fire_1.wav 
     115 109 103 95 102 105 114 101 95 49 0

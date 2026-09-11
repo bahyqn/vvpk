@@ -3,7 +3,7 @@
     "tasks": [
         {
             "label": "test",
-            "command": "go test -v -count=1 .",
+            "command": "go test -v -count=1 -run .",
             "type": "shell",
             "args": [],
             "problemMatcher": ["$go"],

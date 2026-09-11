@@ -31,9 +31,9 @@ func VerifyBoundary(path string) (bool, error) {
 
 	switch version {
 	case 1:
-		return VerifyBoundary_v1(file)
+		return VerifyBoundary_v1Dev(file)
 	case 2:
-		return VerifyBoundary_v2(file)
+		return VerifyBoundary_v2Dev(file)
 	default:
 		return false, fmt.Errorf("unsupported vpk version: %d", version)
 	}
@@ -64,9 +64,9 @@ func VerifyChecksums(path string) ([]FailedEntry, error) {
 
 	switch version {
 	case 1:
-		return calculateEntryCRC_v1(file, failedEntries)
+		return calculateEntryCRC_v1Dev(file, failedEntries)
 	case 2:
-		return calculateEntryCRC_v2(file, failedEntries)
+		return calculateEntryCRC_v2Dev(file, failedEntries)
 	default:
 		return failedEntries, fmt.Errorf("unsupported vpk version: %d", version)
 	}

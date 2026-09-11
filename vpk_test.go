@@ -2,16 +2,22 @@ package vvpk
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
 )
 
 const (
 	WORKSHOPDIR = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop"
-	modPath1    = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/121086524.vpk"
-	modPath2    = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/121796400.vpk"
-	modPath3    = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/3646935257.vpk"
-	modPath4    = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/397962151.vpk"
+	// urban flight 121086524.vpk
+	modPath1 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/121086524.vpk"
+	// warcalona 1
+	modPath2 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/121796400.vpk"
+	// few files
+	modPath3 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/3646935257.vpk"
+	modPath4 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/397962151.vpk"
+	//
+	modPath5 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/128424524.vpk"
 )
 
 func TestOpenAllVpk(t *testing.T) {
@@ -24,7 +30,7 @@ func TestOpenAllVpk(t *testing.T) {
 	}
 
 	for fileIdx, item := range tvpks {
-		_, err := OpenVpk(item)
+		_, err := OpenVpkDev(item)
 
 		if err != nil {
 			t.Fatalf("open %q failed: %v", item, err)
@@ -41,8 +47,31 @@ func TestOpenAllVpk(t *testing.T) {
 }
 
 func TestOpenVpk(t *testing.T) {
+	// fmap := OpenVpk(modPath1)
+	testMods := []string{modPath1, modPath2, modPath3, modPath4, modPath5}
 
-	vpkv1, err := OpenVpk(modPath1)
+	for idx, el := range testMods {
+		fmt.Println("---------------", idx, "-------------")
+		fmap := OpenVpk(el)
+
+		// fmt.Println(fmap["addoninfo.txt"])
+		addoninfo, err := StringToMap(fmap["addoninfo.txt"])
+		if err != nil {
+			panic("x1")
+		}
+		fmt.Printf("%v\n\n", addoninfo)
+
+		tmap, err := StringToMap(fmap["missions"])
+		if err != nil {
+			panic("x1")
+		}
+		fmt.Printf("%v\n", tmap)
+	}
+}
+
+func TestOpenVpkDev(t *testing.T) {
+
+	vpkv1, err := OpenVpkDev(modPath3)
 
 	if err != nil {
 		panic(err)
@@ -98,4 +127,36 @@ func TestVerifyChecksums(t *testing.T) {
 
 		// fmt.Println()
 	}
+}
+
+func TestReadTxtFile(t *testing.T) {
+	vpkv1, err := OpenVpkDev(modPath3)
+
+	if err != nil {
+		panic(err)
+	}
+
+	f, err := os.Open(modPath1)
+
+	if err != nil {
+		panic("xx111")
+	}
+	defer f.Close()
+
+	fmt.Println(vpkv1.Version)
+	// for idx, item := range vpkv1.Entries {
+	// 	fmt.Printf("%d: %s ---> %s --> %s\n", idx, item.Extension, item.Path, item.Filename)
+
+	// 	if item.Extension == "txt" && item.Filename == "addoninfo" {
+	// 		fmt.Println(item.Extension)
+	// 		fmt.Println(item.Path)
+	// 		fmt.Println(item.Filename)
+	// 		fmt.Println(item.ArchiveIndex)
+	// 		fmt.Println(item.Preload)
+	// 		fmt.Println(item.EntryOffset)
+	// 		fmt.Println(item.EntryLength)
+
+	// 		// ReadTxtFile(f, &item)
+	// 	}
+	// }
 }

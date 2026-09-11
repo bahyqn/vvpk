@@ -6,10 +6,102 @@ import (
 	"hash/crc32"
 	"io"
 	"os"
+	"path"
+	"strings"
 )
 
+func parseVPKv1(f *os.File, f_map map[string]string) error {
+	var headerBuf [12]byte
+
+	if _, err := io.ReadFull(f, headerBuf[:]); err != nil {
+		return fmt.Errorf("read v1 header failed: %w", err)
+	}
+
+	treeSize := binary.LittleEndian.Uint32(headerBuf[:][8:12])
+
+	if treeSize <= 0 {
+		return fmt.Errorf("Read treeSize went wrong")
+	}
+
+	treeReader := io.LimitReader(f, int64(treeSize))
+	file_archive := []Metadata{}
+
+	err := walkV1Entries(treeReader, func(m Metadata) error {
+		key := m.Filename + "." + m.Extension
+
+		_, ok := f_map[key]
+
+		if ok || strings.ToLower(m.Path) == "missions" {
+			// 0x7FFF (32767)
+			if m.ArchiveIndex != 32767 {
+				return fmt.Errorf("ArchiveIndex is not 0x7FFF (32767)")
+			}
+
+			file_archive = append(file_archive, m)
+		}
+		return nil
+	})
+
+	fmt.Printf("%v\n", file_archive)
+	// make sure the seek was in right index
+	ensureDataSectionStart(f, 12+int64(treeSize))
+	SortByOffset(file_archive)
+
+	for _, el := range file_archive {
+		buf := make([]byte, el.EntryLength)
+		key := ""
+
+		if el.Path != "" {
+			key = el.Path + "/" + el.Filename + "." + el.Extension
+		} else {
+			key = el.Filename + "." + el.Extension
+		}
+
+		// fmt.Println(key)
+
+		_, ok := f_map[key]
+		machted, err := path.Match("missions/*.txt", key)
+		if !ok && !machted {
+			continue
+		}
+
+		// fmt.Println(el)
+		// fmt.Println(key)
+		// fmt.Println(machted, err)
+		// fmt.Println()
+
+		if err != nil {
+			continue
+		}
+
+		if !machted {
+			f_map["missions"] = ""
+			delete(f_map, "missions/*.txt")
+		}
+
+		ensureDataSectionStart(f, 12+int64(treeSize)+int64(el.EntryOffset))
+
+		if _, err := io.ReadFull(f, buf); err == nil {
+			if machted {
+				f_map["missions"] = string(buf)
+				delete(f_map, "missions/*.txt")
+			}
+
+			if !machted && strings.ToLower(el.Path) != "missions" {
+				f_map[key] = string(buf)
+			}
+		}
+	}
+
+	if err != nil {
+		return fmt.Errorf("Forloop files inside vpk went wrong")
+	}
+
+	return nil
+}
+
 // func parseVPKv1(r io.Reader) (VpkArchive, error) {
-func parseVPKv1(f *os.File) (VpkArchive, error) {
+func parseVPKv1Dev(f *os.File) (VpkArchive, error) {
 	var headerBuf [12]byte
 
 	if _, err := io.ReadFull(f, headerBuf[:]); err != nil {
@@ -35,10 +127,31 @@ func parseVPKv1(f *os.File) (VpkArchive, error) {
 		return vpkArchive, err
 	}
 
+	// var offset, length uint32
+
+	// for _, el := range vpkArchive.Entries {
+	// 	if el.Filename == "addoninfo" {
+	// 		offset = el.EntryOffset
+	// 		length = el.EntryLength
+	// 	}
+	// }
+
+	// _, err = f.Seek(int64(offset), io.SeekCurrent)
+
+	// if err != nil {
+	// 	panic("1111111")
+	// }
+
+	// buf := make([]byte, length)
+	// if _, err = io.ReadFull(f, buf); err != nil {
+	// 	panic("222222")
+	// }
+
+	// fmt.Println(string(buf))
 	return vpkArchive, nil
 }
 
-func VerifyBoundary_v1(f *os.File) (bool, error) {
+func VerifyBoundary_v1Dev(f *os.File) (bool, error) {
 	var headerBuf [12]byte
 
 	if _, err := io.ReadFull(f, headerBuf[:]); err != nil {
@@ -147,6 +260,14 @@ func readV1Entry(r io.Reader, ext, path, filename string) (Metadata, error) {
 		return Metadata{}, fmt.Errorf("read v1 preload data failed: %w", err)
 	}
 
+	// fmt.Println("ext ", ext)
+	// fmt.Println("path ", path)
+	// fmt.Println("filename", filename)
+	// fmt.Println("archiveindex ", archiveIndex)
+	// fmt.Println("preload ", preload)
+	// fmt.Println("offset ", entryOffset)
+	// fmt.Println("length ", entryLength)
+
 	return Metadata{
 		Extension:    ext,
 		Path:         path,
@@ -211,7 +332,7 @@ func calculateMaxOffsetCRC(f *os.File, metadata Metadata, fileSize int64, header
 	return true, nil
 }
 
-func calculateEntryCRC_v1(f *os.File, failedEntries []FailedEntry) ([]FailedEntry, error) {
+func calculateEntryCRC_v1Dev(f *os.File, failedEntries []FailedEntry) ([]FailedEntry, error) {
 	var headerBuf [12]byte
 
 	if _, err := io.ReadFull(f, headerBuf[:]); err != nil {
