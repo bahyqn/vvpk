@@ -57,14 +57,23 @@ type FailedEntry struct {
 
 ## Func
 ```
-func OpenVpk(path string) (VpkArchive, error)
+func OpenVpk(path string) (map[string]string, error)
+// return
+// map[string]string{ "addoninfo.txt": "", "missions: "", "version": "1 or 2"}
+
 
 // It calculates the last file's(maximum offset) crc inside the vpk.
 func VerifyBoundary(path string) (bool, error)
 
+
 // It calculates all files's crc inside the vpk
 func VerifyChecksums(path string) ([]FailedEntry, error)
 
+
 // offset small to large
 func SortByOffset(metadata []Metadata)
+
+func OpenAddonlist(path string) ([]string, error) 
+
+func UpdateModStatus(content []string, vpkId string, state string)
 ```
