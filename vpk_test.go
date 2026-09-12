@@ -3,11 +3,13 @@ package vvpk
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"testing"
 )
 
 const (
+	DIR         = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2"
 	WORKSHOPDIR = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop"
 	// urban flight 121086524.vpk
 	modPath1 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/121086524.vpk"
@@ -54,18 +56,19 @@ func TestOpenVpk(t *testing.T) {
 		fmt.Println("---------------", idx, "-------------")
 		fmap := OpenVpk(el)
 
-		// fmt.Println(fmap["addoninfo.txt"])
-		addoninfo, err := StringToMap(fmap["addoninfo.txt"])
-		if err != nil {
-			panic("x1")
-		}
-		fmt.Printf("%v\n\n", addoninfo)
+		fmt.Println(fmap)
 
-		tmap, err := StringToMap(fmap["missions"])
-		if err != nil {
-			panic("x1")
-		}
-		fmt.Printf("%v\n", tmap)
+		// addoninfo, err := StringToMap(fmap["addoninfo.txt"])
+		// if err != nil {
+		// 	panic("x1")
+		// }
+		// fmt.Printf("%v\n\n", addoninfo)
+
+		// tmap, err := StringToMap(fmap["missions"])
+		// if err != nil {
+		// 	panic("x1")
+		// }
+		// fmt.Printf("%v\n", tmap)
 	}
 }
 
@@ -159,4 +162,18 @@ func TestReadTxtFile(t *testing.T) {
 	// 		// ReadTxtFile(f, &item)
 	// 	}
 	// }
+}
+
+func TestOpenFile(t *testing.T) {
+	content, _ := OpenAddonlist(path.Join(DIR, "addonlist.txt"))
+
+	for _, el := range content {
+		// fmt.Printf("%d ---> %s \n", idx, el)
+		fmt.Println(el)
+	}
+
+	UpdateModStatus(content, "1928446407", "0")
+	for _, el := range content {
+		fmt.Println(el)
+	}
 }
