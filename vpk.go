@@ -170,7 +170,6 @@ func parseVPK(f *os.File, f_map map[string]string) error {
 		return nil
 	})
 
-	fmt.Printf("%v\n", file_archive)
 	// make sure the seek was in right index
 	ensureDataSectionStart(f, 12+int64(treeSize))
 	SortByOffset(file_archive)

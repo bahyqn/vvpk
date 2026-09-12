@@ -20,6 +20,8 @@ const (
 	modPath4 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/397962151.vpk"
 	//
 	modPath5 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/128424524.vpk"
+	// super healing
+	modPath6 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/1846565331.vpk"
 )
 
 func TestOpenAllVpk(t *testing.T) {
@@ -50,7 +52,8 @@ func TestOpenAllVpk(t *testing.T) {
 
 func TestOpenVpk(t *testing.T) {
 	// fmap := OpenVpk(modPath1)
-	testMods := []string{modPath1, modPath2, modPath3, modPath4, modPath5}
+	// testMods := []string{modPath1, modPath2, modPath3, modPath4, modPath5}
+	testMods := []string{modPath6}
 
 	for idx, el := range testMods {
 		fmt.Println("---------------", idx, "-------------")
@@ -74,7 +77,7 @@ func TestOpenVpk(t *testing.T) {
 
 func TestOpenVpkDev(t *testing.T) {
 
-	vpkv1, err := OpenVpkDev(modPath3)
+	vpkv1, err := OpenVpkDev(modPath6)
 
 	if err != nil {
 		panic(err)
