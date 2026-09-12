@@ -1,12 +1,16 @@
 package vvpk
 
 import (
+	"bufio"
 	"cmp"
+	"encoding/binary"
 	"fmt"
-	"hash/crc32"
 	"io"
 	"os"
+	"path"
 	"slices"
+	"strconv"
+	"strings"
 )
 
 type VpkArchive struct {
@@ -59,7 +63,7 @@ func (vpk VpkArchive) LengthValidate() uint32 {
 	return len
 }
 
-// Return strings such as addoninfo.txt, missions/*.txt
+// Return map[string]string{ "addoninfo.txt": "", "missions: "", "version": "1 or 2"}
 func OpenVpk(path string) map[string]string {
 	file_content := map[string]string{}
 	files := []string{"addoninfo.txt", "missions/*.txt"}
@@ -82,12 +86,13 @@ func OpenVpk(path string) map[string]string {
 	defer file.Close()
 
 	// version, err := detectVersion(file)
-	_, err = detectVersion(file)
+	version, err := detectVersion(file)
 	if err != nil {
 		return file_content
 	}
 
-	_ = parseVPKv1(file, fmap)
+	fmap["version"] = strconv.FormatUint(uint64(version), 10)
+	_ = parseVPK(file, fmap)
 	return fmap
 }
 
@@ -102,10 +107,6 @@ func OpenVpkDev(path string) (VpkArchive, error) {
 	if err != nil {
 		return VpkArchive{}, err
 	}
-
-	// if _, err := file.Seek(0, io.SeekStart); err != nil {
-	// 	return VpkArchive{}, fmt.Errorf("seek vpk header failed: %w", err)
-	// }
 
 	switch version {
 	case 1:
@@ -137,23 +138,144 @@ func ensureDataSectionStart(f *os.File, expectedOffset int64) error {
 	return nil
 }
 
-func calculateCRC(f *os.File, metadata Metadata) (bool, uint32, error) {
-	var calculated_crc uint32
+func parseVPK(f *os.File, f_map map[string]string) error {
+	var headerBuf [12]byte
 
-	if metadata.ArchiveIndex != 0x7fff {
-		calculated_crc = crc32.ChecksumIEEE(metadata.Preload)
-	} else {
-		tmp_buf := make([]byte, metadata.EntryLength)
+	if _, err := io.ReadFull(f, headerBuf[:]); err != nil {
+		return fmt.Errorf("read v1 header failed: %w", err)
+	}
 
-		if _, err := io.ReadFull(f, tmp_buf); err != nil {
-			return false, 0, fmt.Errorf("seek went wrong place.")
+	treeSize := binary.LittleEndian.Uint32(headerBuf[:][8:12])
+
+	if treeSize <= 0 {
+		return fmt.Errorf("Read treeSize went wrong")
+	}
+
+	treeReader := io.LimitReader(f, int64(treeSize))
+	file_archive := []Metadata{}
+
+	err := walkV1Entries(treeReader, func(m Metadata) error {
+		key := m.Filename + "." + m.Extension
+
+		_, ok := f_map[key]
+
+		if ok || strings.ToLower(m.Path) == "missions" {
+			// 0x7FFF (32767)
+			if m.ArchiveIndex != 32767 {
+				return fmt.Errorf("ArchiveIndex is not 0x7FFF (32767)")
+			}
+
+			file_archive = append(file_archive, m)
+		}
+		return nil
+	})
+
+	fmt.Printf("%v\n", file_archive)
+	// make sure the seek was in right index
+	ensureDataSectionStart(f, 12+int64(treeSize))
+	SortByOffset(file_archive)
+
+	for _, el := range file_archive {
+		buf := make([]byte, el.EntryLength)
+		key := ""
+
+		if el.Path != "" {
+			key = el.Path + "/" + el.Filename + "." + el.Extension
+		} else {
+			key = el.Filename + "." + el.Extension
 		}
 
-		calculated_crc = crc32.ChecksumIEEE(tmp_buf)
+		// fmt.Println(key)
+
+		_, ok := f_map[key]
+		machted, err := path.Match("missions/*.txt", key)
+		if !ok && !machted {
+			continue
+		}
+
+		// fmt.Println(el)
+		// fmt.Println(key)
+		// fmt.Println(machted, err)
+		// fmt.Println()
+
+		if err != nil {
+			continue
+		}
+
+		if !machted {
+			f_map["missions"] = ""
+			delete(f_map, "missions/*.txt")
+		}
+
+		ensureDataSectionStart(f, 12+int64(treeSize)+int64(el.EntryOffset))
+
+		if _, err := io.ReadFull(f, buf); err == nil {
+			if machted {
+				f_map["missions"] = string(buf)
+				delete(f_map, "missions/*.txt")
+			}
+
+			if !machted && strings.ToLower(el.Path) != "missions" {
+				f_map[key] = string(buf)
+			}
+		}
 	}
 
-	if metadata.Checksum != calculated_crc {
-		return false, calculated_crc, fmt.Errorf("crc was not same")
+	if err != nil {
+		return fmt.Errorf("Forloop files inside vpk went wrong")
 	}
-	return true, calculated_crc, nil
+
+	return nil
+}
+
+func OpenAddonlist(path string) ([]string, error) {
+	content := []string{}
+	f, err := os.Open(path)
+
+	if err != nil {
+		return content, fmt.Errorf("addonlist path is invalid")
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		content = append(content, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		return content, fmt.Errorf("Error during scan %s", path)
+	}
+	return content, nil
+}
+
+func UpdateModStatus(content []string, vpkId string, state string) {
+	for elIdx, el := range content {
+		if strings.Contains(el, vpkId) {
+
+			b := []byte(el)
+			count := 0
+
+			for idx, str := range el {
+				// fmt.Printf("%d ---> %d, %s\n", idx, str, string(str))
+				// "
+				if str == 34 {
+					count += 1
+
+					if count == 3 {
+						switch b[idx+1] {
+						// "0"
+						case 48:
+							b[idx+1] = 49
+							// "1"
+						case 49:
+							b[idx+1] = 48
+						}
+						content[elIdx] = string(b)
+						break
+					}
+				}
+			}
+			break
+		}
+	}
 }
