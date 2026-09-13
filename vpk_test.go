@@ -22,6 +22,13 @@ const (
 	modPath5 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/128424524.vpk"
 	// super healing
 	modPath6 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/1846565331.vpk"
+	//
+	modPath7 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/2591469076.vpk"
+	//
+	modPath8  = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/2598614815.vpk"
+	modPath9  = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/213445426.vpk"
+	modPath10 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/2239816060.vpk"
+	modPath11 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/2280444652.vpk"
 )
 
 func TestOpenAllVpk(t *testing.T) {
@@ -53,13 +60,14 @@ func TestOpenAllVpk(t *testing.T) {
 func TestOpenVpk(t *testing.T) {
 	// fmap := OpenVpk(modPath1)
 	// testMods := []string{modPath1, modPath2, modPath3, modPath4, modPath5}
-	testMods := []string{modPath6}
+	testMods := []string{modPath1}
 
 	for idx, el := range testMods {
 		fmt.Println("---------------", idx, "-------------")
 		fmap := OpenVpk(el)
 
-		fmt.Println(fmap)
+		fmt.Printf("%+v\n", fmap)
+		fmt.Println(len(fmap.Missions))
 
 		// addoninfo, err := StringToMap(fmap["addoninfo.txt"])
 		// if err != nil {
@@ -77,7 +85,7 @@ func TestOpenVpk(t *testing.T) {
 
 func TestOpenVpkDev(t *testing.T) {
 
-	vpkv1, err := OpenVpkDev(modPath6)
+	vpkv1, err := OpenVpkDev(modPath1)
 
 	if err != nil {
 		panic(err)

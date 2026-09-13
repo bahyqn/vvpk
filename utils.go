@@ -95,15 +95,18 @@ func sliceToMap(files []string) (map[string]string, error) {
 
 	for _, el := range files {
 		f_slice := strings.Split(el, ".")
+		
+		// if len(f_slice) <= 1 {
+		// 	return fmap, fmt.Errorf("Files format error")
+		// }
+		sliceLength := len(f_slice)
 
-		if len(f_slice) <= 1 {
-			return fmap, fmt.Errorf("Files format error")
-		}
-
-		if f_slice[1] != "txt" {
+		if sliceLength > 1&& f_slice[1] != "txt" {
 			return fmap, fmt.Errorf("File extension is not txt")
 		}
+		// fmt.Println(el)
 		fmap[el] = ""
+		// fmt.Println(fmap)
 	}
 	return fmap, nil
 }

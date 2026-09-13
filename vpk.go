@@ -7,11 +7,15 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 	"slices"
-	"strconv"
 	"strings"
 )
+
+type Filemap struct {
+	Addoninfo string
+	Missions  map[string]string
+	Version   uint32
+}
 
 type VpkArchive struct {
 	Signature uint32
@@ -32,8 +36,9 @@ type Metadata struct {
 	Filename  string
 	// Checksum     [4]byte
 	Checksum uint32
-	// Preload      [2]byte
-	Preload []byte
+	// PreloadBytes      [2]byte
+	PrelaodBytes uint16
+	Preload      []byte
 	// ArchiveIndex [2]byte
 	ArchiveIndex uint16
 	// EntryOffset  [4]byte
@@ -64,35 +69,42 @@ func (vpk VpkArchive) LengthValidate() uint32 {
 }
 
 // Return map[string]string{ "addoninfo.txt": "", "missions: "", "version": "1 or 2"}
-func OpenVpk(path string) map[string]string {
-	file_content := map[string]string{}
-	files := []string{"addoninfo.txt", "missions/*.txt"}
+func OpenVpk(path string) Filemap {
+	// file_content := map[string]string{}
+	// files := []string{"addoninfo", "missions/*.txt"}
 
 	// if len(files) == 0 {
 	// 	files = append(files, "addoninfo.txt")
 	// 	files = append(files, "missions/*.txt")
 	// }
 
-	fmap, err := sliceToMap(files)
+	// fmap, err := sliceToMap(files)
 
-	if err != nil {
-		return file_content
+	fmap := Filemap{
+		Missions: make(map[string]string),
 	}
+
+	// fmt.Println(fmap)
+
+	// if err != nil {
+	// 	return file_content
+	// }
 
 	file, err := os.Open(path)
 	if err != nil {
-		return file_content
+		return fmap
 	}
 	defer file.Close()
 
 	// version, err := detectVersion(file)
 	version, err := detectVersion(file)
 	if err != nil {
-		return file_content
+		return fmap
 	}
 
-	fmap["version"] = strconv.FormatUint(uint64(version), 10)
-	_ = parseVPK(file, fmap)
+	// fmap["version"] = strconv.FormatUint(uint64(version), 10)
+	fmap.Version = version
+	_ = parseVPK(file, &fmap)
 	return fmap
 }
 
@@ -138,7 +150,7 @@ func ensureDataSectionStart(f *os.File, expectedOffset int64) error {
 	return nil
 }
 
-func parseVPK(f *os.File, f_map map[string]string) error {
+func parseVPK(f *os.File, fmap *Filemap) error {
 	var headerBuf [12]byte
 
 	if _, err := io.ReadFull(f, headerBuf[:]); err != nil {
@@ -155,69 +167,54 @@ func parseVPK(f *os.File, f_map map[string]string) error {
 	file_archive := []Metadata{}
 
 	err := walkV1Entries(treeReader, func(m Metadata) error {
-		key := m.Filename + "." + m.Extension
 
-		_, ok := f_map[key]
+		k := strings.ToLower(m.Filename)
+		// currentPos, _ := f.Seek(0, io.SeekCurrent)
+		// fmt.Printf("seek: %d ---> %s\n", currentPos, filepath.Join(m.Path, m.Filename+"."+m.Extension))
 
-		if ok || strings.ToLower(m.Path) == "missions" {
-			// 0x7FFF (32767)
-			if m.ArchiveIndex != 32767 {
-				return fmt.Errorf("ArchiveIndex is not 0x7FFF (32767)")
+		if k == "addoninfo" {
+			if m.PrelaodBytes > 0 {
+				fmap.Addoninfo = string(m.Preload)
+			} else {
+				file_archive = append(file_archive, m)
 			}
+			// fmt.Println("aaddoninfo seek: ", currentPos)
+			// fmt.Printf("%+v\n", m)
+		}
 
+		if m.Path == "missions" {
+			// fmt.Println("missions seek: ", currentPos)
 			file_archive = append(file_archive, m)
 		}
 		return nil
 	})
 
+	// fmt.Println(len(file_archive))
+	// fmt.Printf("---+> %+v\n", file_archive)
 	// make sure the seek was in right index
 	ensureDataSectionStart(f, 12+int64(treeSize))
 	SortByOffset(file_archive)
 
+	// fmt.Println(len(file_archive))
+	// fmt.Printf("----11> %+v\n", file_archive)
 	for _, el := range file_archive {
+		// fmt.Printf("----> %+v\n\n", el)
+		ensureDataSectionStart(f, 12+int64(treeSize)+int64(el.EntryOffset))
+
 		buf := make([]byte, el.EntryLength)
-		key := ""
 
-		if el.Path != "" {
-			key = el.Path + "/" + el.Filename + "." + el.Extension
-		} else {
-			key = el.Filename + "." + el.Extension
-		}
-
-		// fmt.Println(key)
-
-		_, ok := f_map[key]
-		machted, err := path.Match("missions/*.txt", key)
-		if !ok && !machted {
-			continue
-		}
-
-		// fmt.Println(el)
-		// fmt.Println(key)
-		// fmt.Println(machted, err)
-		// fmt.Println()
+		_, err := io.ReadFull(f, buf)
 
 		if err != nil {
 			continue
 		}
 
-		if !machted {
-			f_map["missions"] = ""
-			delete(f_map, "missions/*.txt")
+		if el.Path == "" && strings.ToLower(el.Filename) == "addoninfo" && strings.HasPrefix(strings.ToLower(el.Extension), "tx") {
+			fmap.Addoninfo = string(buf)
+			continue
 		}
-
-		ensureDataSectionStart(f, 12+int64(treeSize)+int64(el.EntryOffset))
-
-		if _, err := io.ReadFull(f, buf); err == nil {
-			if machted {
-				f_map["missions"] = string(buf)
-				delete(f_map, "missions/*.txt")
-			}
-
-			if !machted && strings.ToLower(el.Path) != "missions" {
-				f_map[key] = string(buf)
-			}
-		}
+		// missions
+		fmap.Missions[strings.ToLower(el.Filename)] = string(buf)
 	}
 
 	if err != nil {

@@ -181,6 +181,7 @@ func readV1Entry(r io.Reader, ext, path, filename string) (Metadata, error) {
 		Path:         path,
 		Filename:     filename,
 		Checksum:     checksum,
+		PrelaodBytes: preloadLength,
 		Preload:      preload,
 		ArchiveIndex: archiveIndex,
 		EntryOffset:  entryOffset,
