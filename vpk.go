@@ -244,7 +244,7 @@ func OpenAddonlist(path string) ([]string, error) {
 	return content, nil
 }
 
-func UpdateModStatus(content []string, vpkId string, state string) {
+func UpdateModStatus(content []string, vpkId string) {
 	for elIdx, el := range content {
 		if strings.Contains(el, vpkId) {
 

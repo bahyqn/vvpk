@@ -183,7 +183,7 @@ func TestOpenFile(t *testing.T) {
 		fmt.Println(el)
 	}
 
-	UpdateModStatus(content, "1928446407", "0")
+	UpdateModStatus(content, "1928446407")
 	for _, el := range content {
 		fmt.Println(el)
 	}
