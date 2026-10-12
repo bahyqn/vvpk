@@ -11,10 +11,11 @@ import (
 	"strings"
 )
 
-type Filemap struct {
-	Addoninfo string
-	Missions  map[string]string
-	Version   uint32
+type VpkSummary struct {
+	Addoninfo  string
+	Missions   map[string]string
+	VpkVersion uint32
+	TreeSize   uint32
 }
 
 type VpkArchive struct {
@@ -69,7 +70,7 @@ func (vpk VpkArchive) LengthValidate() uint32 {
 }
 
 // Return map[string]string{ "addoninfo.txt": "", "missions: "", "version": "1 or 2"}
-func OpenVpk(path string) Filemap {
+func OpenVpk(path string) VpkSummary {
 	// file_content := map[string]string{}
 	// files := []string{"addoninfo", "missions/*.txt"}
 
@@ -80,7 +81,7 @@ func OpenVpk(path string) Filemap {
 
 	// fmap, err := sliceToMap(files)
 
-	fmap := Filemap{
+	vpkSummary := VpkSummary{
 		Missions: make(map[string]string),
 	}
 
@@ -92,20 +93,20 @@ func OpenVpk(path string) Filemap {
 
 	file, err := os.Open(path)
 	if err != nil {
-		return fmap
+		return vpkSummary
 	}
 	defer file.Close()
 
 	// version, err := detectVersion(file)
-	version, err := detectVersion(file)
-	if err != nil {
-		return fmap
-	}
+	// version, err := detectVersion(file)
+	// if err != nil {
+	// 	return vpkSummary
+	// }
 
 	// fmap["version"] = strconv.FormatUint(uint64(version), 10)
-	fmap.Version = version
-	_ = parseVPK(file, &fmap)
-	return fmap
+	// vpkSummary.VpkVersion = version
+	_ = parseVPK(file, &vpkSummary)
+	return vpkSummary
 }
 
 func OpenVpkDev(path string) (VpkArchive, error) {
@@ -150,14 +151,18 @@ func ensureDataSectionStart(f *os.File, expectedOffset int64) error {
 	return nil
 }
 
-func parseVPK(f *os.File, fmap *Filemap) error {
+func parseVPK(f *os.File, vpkSummary *VpkSummary) error {
 	var headerBuf [12]byte
 
 	if _, err := io.ReadFull(f, headerBuf[:]); err != nil {
 		return fmt.Errorf("read v1 header failed: %w", err)
 	}
 
+	vpkVersion := binary.LittleEndian.Uint32(headerBuf[:][4:8])
 	treeSize := binary.LittleEndian.Uint32(headerBuf[:][8:12])
+	
+	vpkSummary.VpkVersion = vpkVersion
+	vpkSummary.TreeSize = treeSize
 
 	if treeSize <= 0 {
 		return fmt.Errorf("Read treeSize went wrong")
@@ -174,7 +179,7 @@ func parseVPK(f *os.File, fmap *Filemap) error {
 
 		if k == "addoninfo" {
 			if m.PrelaodBytes > 0 {
-				fmap.Addoninfo = string(m.Preload)
+				vpkSummary.Addoninfo = string(m.Preload)
 			} else {
 				file_archive = append(file_archive, m)
 			}
@@ -210,11 +215,11 @@ func parseVPK(f *os.File, fmap *Filemap) error {
 		}
 
 		if el.Path == "" && strings.ToLower(el.Filename) == "addoninfo" && strings.HasPrefix(strings.ToLower(el.Extension), "tx") {
-			fmap.Addoninfo = string(buf)
+			vpkSummary.Addoninfo = string(buf)
 			continue
 		}
 		// missions
-		fmap.Missions[strings.ToLower(el.Filename)] = string(buf)
+		vpkSummary.Missions[strings.ToLower(el.Filename)] = string(buf)
 	}
 
 	if err != nil {

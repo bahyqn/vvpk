@@ -1,5 +1,10 @@
 # vvpk
 
+A pure Go library for parsing Valve Package (`.vpk`) files, with full support for both VPK `v1` and `v2` formats.
+
+
+
+
 ```
 bsp  map
 wav  sound

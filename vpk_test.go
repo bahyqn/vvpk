@@ -64,10 +64,11 @@ func TestOpenVpk(t *testing.T) {
 
 	for idx, el := range testMods {
 		fmt.Println("---------------", idx, "-------------")
-		fmap := OpenVpk(el)
+		vpkSummary := OpenVpk(el)
 
-		fmt.Printf("%+v\n", fmap)
-		fmt.Println(len(fmap.Missions))
+		// fmt.Printf("%+v\n", fmap)
+		fmt.Println(len(vpkSummary.Missions))
+		fmt.Println(vpkSummary.TreeSize)
 
 		// addoninfo, err := StringToMap(fmap["addoninfo.txt"])
 		// if err != nil {
