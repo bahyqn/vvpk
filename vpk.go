@@ -160,7 +160,7 @@ func parseVPK(f *os.File, vpkSummary *VpkSummary) error {
 
 	vpkVersion := binary.LittleEndian.Uint32(headerBuf[:][4:8])
 	treeSize := binary.LittleEndian.Uint32(headerBuf[:][8:12])
-	
+
 	vpkSummary.VpkVersion = vpkVersion
 	vpkSummary.TreeSize = treeSize
 
@@ -229,54 +229,99 @@ func parseVPK(f *os.File, vpkSummary *VpkSummary) error {
 	return nil
 }
 
-func OpenAddonlist(path string) ([]string, error) {
+// return addoninfo slice && idxMap(quickly find some vpk in slice)
+func OpenAddonlist(path string) ([]string, map[string]int, error) {
 	content := []string{}
+	idxMap := map[string]int{}
+
 	f, err := os.Open(path)
 
 	if err != nil {
-		return content, fmt.Errorf("addonlist path is invalid")
+		return content, idxMap, fmt.Errorf("addonlist path is invalid")
 	}
 	defer f.Close()
 
+	count := -1
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
-		content = append(content, scanner.Text())
+		count += 1
+		text := scanner.Text()
+		content = append(content, text)
+
+		key := ExtractVpkId(text)
+		if key != "" {
+			idxMap[key] = count
+		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		return content, fmt.Errorf("Error during scan %s", path)
+		return content, idxMap, fmt.Errorf("Error during scan %s", path)
 	}
-	return content, nil
+	return content, idxMap, nil
 }
 
-func UpdateModStatus(content []string, vpkId string) {
-	for elIdx, el := range content {
-		if strings.Contains(el, vpkId) {
-
-			b := []byte(el)
-			count := 0
-
-			for idx, str := range el {
-				// fmt.Printf("%d ---> %d, %s\n", idx, str, string(str))
-				// "
-				if str == 34 {
-					count += 1
-
-					if count == 3 {
-						switch b[idx+1] {
-						// "0"
-						case 48:
-							b[idx+1] = 49
-							// "1"
-						case 49:
-							b[idx+1] = 48
-						}
-						content[elIdx] = string(b)
-						break
-					}
-				}
-			}
-			break
-		}
+func UpdateModStatus(content []string, vpkId string, status string) error {
+	if status != "0" && status != "1" {
+		return fmt.Errorf("Attention: status only 0 or 1")
 	}
+
+	for i, line := range content {
+		if !strings.Contains(line, vpkId) {
+			continue
+		}
+
+		quoteCount := 0
+		for pos := 0; pos < len(line); pos++ {
+			if line[pos] != '"' {
+				continue
+			}
+
+			quoteCount++
+			if quoteCount == 3 {
+				if pos+1 >= len(line) {
+					return fmt.Errorf("invalid addonlist entry for %q", vpkId)
+				}
+
+				updated := []byte(line)
+				updated[pos+1] = status[0]
+				content[i] = string(updated)
+				return nil
+			}
+		}
+
+		return fmt.Errorf("invalid addonlist entry for %q", vpkId)
+	}
+
+	return nil
+}
+
+func ExtractVpkId(rawStr string) string {
+	first := strings.IndexByte(rawStr, '"')
+	if first == -1 {
+		return ""
+	}
+
+	last := strings.IndexByte(rawStr[first+1:], '"')
+	if last == -1 {
+		return ""
+	}
+
+	quotedPath := rawStr[first+1 : first+1+last]
+	filename := quotedPath[strings.LastIndexAny(quotedPath, `/\\`)+1:]
+	if extension := strings.LastIndexByte(filename, '.'); extension >= 0 {
+		filename = filename[:extension]
+	}
+	return filename
+}
+
+func SaveAddonlist(path string, rawSlice []string) error {
+	content := strings.Join(rawSlice, "\n")
+	if len(rawSlice) > 0 {
+		content += "\n"
+	}
+
+	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		return fmt.Errorf("write addonlist %q failed: %w", path, err)
+	}
+	return nil
 }

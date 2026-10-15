@@ -176,16 +176,23 @@ func TestReadTxtFile(t *testing.T) {
 	// }
 }
 
-func TestOpenFile(t *testing.T) {
-	content, _ := OpenAddonlist(path.Join(DIR, "addonlist.txt"))
+func TestOpenAddonlist(t *testing.T) {
+	content, _, _ := OpenAddonlist(path.Join(DIR, "addonlist.txt"))
 
 	for _, el := range content {
 		// fmt.Printf("%d ---> %s \n", idx, el)
 		fmt.Println(el)
 	}
 
-	UpdateModStatus(content, "1928446407")
+	_ = UpdateModStatus(content, "2485657789", "0")
+	_ = SaveAddonlist("addonlist.txt", content)
+}
+
+func TestExtractVpkId(t *testing.T) {
+	content, _, _ := OpenAddonlist(filepath.Join(DIR, "addonlist.txt"))
+
 	for _, el := range content {
-		fmt.Println(el)
+		// fmt.Printf("%d ---> %s \n", idx, el)
+		fmt.Println(el, " ---> ", ExtractVpkId(el))
 	}
 }
