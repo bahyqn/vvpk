@@ -177,15 +177,17 @@ func TestReadTxtFile(t *testing.T) {
 }
 
 func TestOpenAddonlist(t *testing.T) {
-	content, _, _ := OpenAddonlist(path.Join(DIR, "addonlist.txt"))
+	content, idxMap, _ := OpenAddonlist(path.Join(DIR, "addonlist.txt"))
 
-	for _, el := range content {
-		// fmt.Printf("%d ---> %s \n", idx, el)
-		fmt.Println(el)
-	}
+	// for _, el := range content {
+	// 	// fmt.Printf("%d ---> %s \n", idx, el)
+	// 	fmt.Println(el)
+	// }
 
 	_ = UpdateModStatus(content, "2485657789", "0")
 	_ = SaveAddonlist("addonlist.txt", content)
+
+	fmt.Printf("%+v\n", idxMap)
 }
 
 func TestExtractVpkId(t *testing.T) {
@@ -193,6 +195,7 @@ func TestExtractVpkId(t *testing.T) {
 
 	for _, el := range content {
 		// fmt.Printf("%d ---> %s \n", idx, el)
-		fmt.Println(el, " ---> ", ExtractVpkId(el))
+		k, v := ExtractAddonListKeyValue(el)
+		fmt.Printf("%s ---> %s\n", k, v)
 	}
 }

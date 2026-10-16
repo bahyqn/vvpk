@@ -56,6 +56,11 @@ type FailedEntry struct {
 	Error         error
 }
 
+type IdxMap struct {
+	Idx   int
+	Value string
+}
+
 func (vpk VpkArchive) LengthValidate() uint32 {
 	var len uint32
 
@@ -230,9 +235,9 @@ func parseVPK(f *os.File, vpkSummary *VpkSummary) error {
 }
 
 // return addoninfo slice && idxMap(quickly find some vpk in slice)
-func OpenAddonlist(path string) ([]string, map[string]int, error) {
+func OpenAddonlist(path string) ([]string, map[string]IdxMap, error) {
 	content := []string{}
-	idxMap := map[string]int{}
+	idxMap := map[string]IdxMap{}
 
 	f, err := os.Open(path)
 
@@ -248,9 +253,14 @@ func OpenAddonlist(path string) ([]string, map[string]int, error) {
 		text := scanner.Text()
 		content = append(content, text)
 
-		key := ExtractVpkId(text)
-		if key != "" {
-			idxMap[key] = count
+		key, value := ExtractAddonListKeyValue(text)
+
+		// fmt.Printf("%s \t %s\n", key, value)
+		if key != "" && value != "" {
+			idxMap[key] = IdxMap{
+				Idx:   count,
+				Value: value,
+			}
 		}
 	}
 
@@ -295,15 +305,15 @@ func UpdateModStatus(content []string, vpkId string, status string) error {
 	return nil
 }
 
-func ExtractVpkId(rawStr string) string {
+func ExtractAddonListKeyValue(rawStr string) (string, string) {
 	first := strings.IndexByte(rawStr, '"')
 	if first == -1 {
-		return ""
+		return "", ""
 	}
 
 	last := strings.IndexByte(rawStr[first+1:], '"')
 	if last == -1 {
-		return ""
+		return "", ""
 	}
 
 	quotedPath := rawStr[first+1 : first+1+last]
@@ -311,7 +321,11 @@ func ExtractVpkId(rawStr string) string {
 	if extension := strings.LastIndexByte(filename, '.'); extension >= 0 {
 		filename = filename[:extension]
 	}
-	return filename
+	endIdx := strings.LastIndexAny(rawStr[first+1+last:], `"`)
+
+	endIdx = first + last + endIdx
+
+	return filename, rawStr[endIdx : endIdx+1]
 }
 
 func SaveAddonlist(path string, rawSlice []string) error {
