@@ -243,7 +243,7 @@ func OpenAddonlist(path string) ([]string, map[string]IdxMap, error) {
 	return content, idxMap, nil
 }
 
-func UpdateModStatus(content []string, idx int, status string) error {
+func UpdateModStatus(content []string, idx int, idxMap map[string]IdxMap, key string, status string) error {
 	if status != "0" && status != "1" {
 		return fmt.Errorf("Attention: status only 0 or 1")
 	}
@@ -257,6 +257,7 @@ func UpdateModStatus(content []string, idx int, status string) error {
 	}
 
 	row := content[idx]
+	raw := row
 
 	rowBytes := []byte(row)
 
@@ -265,43 +266,16 @@ func UpdateModStatus(content []string, idx int, status string) error {
 	row = string(rowBytes)
 	content[idx] = row
 
+	value, ok := idxMap[key]
+	if !ok {
+		content[idx] = raw
+		return fmt.Errorf("key %q not found in idxMap", key)
+	}
+
+	value.Value = status
+	idxMap[key] = value
 	return nil
 }
-
-// func UpdateModStatus(content []string, vpkId string, status string) error {
-// 	if status != "0" && status != "1" {
-// 		return fmt.Errorf("Attention: status only 0 or 1")
-// 	}
-
-// 	for i, line := range content {
-// 		if !strings.Contains(line, vpkId) {
-// 			continue
-// 		}
-
-// 		quoteCount := 0
-// 		for pos := 0; pos < len(line); pos++ {
-// 			if line[pos] != '"' {
-// 				continue
-// 			}
-
-// 			quoteCount++
-// 			if quoteCount == 3 {
-// 				if pos+1 >= len(line) {
-// 					return fmt.Errorf("invalid addonlist entry for %q", vpkId)
-// 				}
-
-// 				updated := []byte(line)
-// 				updated[pos+1] = status[0]
-// 				content[i] = string(updated)
-// 				return nil
-// 			}
-// 		}
-
-// 		return fmt.Errorf("invalid addonlist entry for %q", vpkId)
-// 	}
-
-// 	return nil
-// }
 
 func ExtractAddonListKeyValue(rawStr string) (string, string) {
 	first := strings.IndexByte(rawStr, '"')
