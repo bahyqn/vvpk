@@ -3,7 +3,6 @@ package vvpk
 import (
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"testing"
 )
@@ -29,10 +28,25 @@ const (
 	modPath9  = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/213445426.vpk"
 	modPath10 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/2239816060.vpk"
 	modPath11 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/2280444652.vpk"
+	// COD:GHOSTS M9A1(magnan) by Cele
+	modPath12 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/487356805.vpk"
+	// insurgency m1911 (suppressed) by zmg
+	modPath13 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/1656894304.vpk"
+	// admin menu by Doctor
+	modPath14 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/574484797.vpk"
+	// Marie Rose Zack Island Swimsuit {Replaces Rochelle} by Choco
+	modPath15 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/1767991393.vpk"
+	// Super Healing by Andree Tran
+	modPath16 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/1846565331.vpk"
+	// [Advanced Bot AI]更多生还者Bot功能 by RogoShum
+	modPath17 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/1968764163.vpk"
+	// SIG MG338 by SIG SAUER
+	modPath18 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/2313508534.vpk"
+	//
+	modPath19 = "/media/lucas/VolumeD/apps/steam/steamapps/common/Left 4 Dead 2/left4dead2/addons/workshop/3460950429.vpk"
 )
 
 func TestOpenAllVpk(t *testing.T) {
-
 	pattern := filepath.Join(WORKSHOPDIR, "*.vpk")
 
 	tvpks, err := filepath.Glob(pattern)
@@ -42,7 +56,6 @@ func TestOpenAllVpk(t *testing.T) {
 
 	for fileIdx, item := range tvpks {
 		_, err := OpenVpkDev(item)
-
 		if err != nil {
 			t.Fatalf("open %q failed: %v", item, err)
 		}
@@ -60,7 +73,7 @@ func TestOpenAllVpk(t *testing.T) {
 func TestOpenVpk(t *testing.T) {
 	// fmap := OpenVpk(modPath1)
 	// testMods := []string{modPath1, modPath2, modPath3, modPath4, modPath5}
-	testMods := []string{modPath1}
+	testMods := []string{modPath12}
 
 	for idx, el := range testMods {
 		fmt.Println("---------------", idx, "-------------")
@@ -85,9 +98,7 @@ func TestOpenVpk(t *testing.T) {
 }
 
 func TestOpenVpkDev(t *testing.T) {
-
 	vpkv1, err := OpenVpkDev(modPath1)
-
 	if err != nil {
 		panic(err)
 	}
@@ -100,7 +111,6 @@ func TestOpenVpkDev(t *testing.T) {
 
 func TestVerifyBoundary(t *testing.T) {
 	ok, err := VerifyBoundary(modPath1)
-
 	if err != nil {
 		panic(err)
 	}
@@ -109,9 +119,7 @@ func TestVerifyBoundary(t *testing.T) {
 }
 
 func TestVerifyChecksum(t *testing.T) {
-
 	failedEntries, err := VerifyChecksums(modPath4)
-
 	if err != nil {
 		panic(err)
 	}
@@ -128,7 +136,6 @@ func TestVerifyChecksums(t *testing.T) {
 
 	for fileIdx, path := range tvpks {
 		failedEntries, err := VerifyChecksums(path)
-
 		if err != nil {
 			panic(err)
 		}
@@ -146,13 +153,11 @@ func TestVerifyChecksums(t *testing.T) {
 
 func TestReadTxtFile(t *testing.T) {
 	vpkv1, err := OpenVpkDev(modPath3)
-
 	if err != nil {
 		panic(err)
 	}
 
 	f, err := os.Open(modPath1)
-
 	if err != nil {
 		panic("xx111")
 	}
@@ -177,17 +182,24 @@ func TestReadTxtFile(t *testing.T) {
 }
 
 func TestOpenAddonlist(t *testing.T) {
-	content, idxMap, _ := OpenAddonlist(path.Join(DIR, "addonlist.txt"))
+	content, idxMap, _ := OpenAddonlist("addonlist.txt")
 
 	// for _, el := range content {
 	// 	// fmt.Printf("%d ---> %s \n", idx, el)
 	// 	fmt.Println(el)
 	// }
 
-	_ = UpdateModStatus(content, "2485657789", "0")
+	// _ = UpdateModStatus(content, "2485657789", "0")
+
+	idxm, ok := idxMap["141632373"]
+	if !ok {
+		fmt.Println("NO key")
+		return
+	}
+	_ = UpdateModStatus(content, idxm.Idx, "0")
 	_ = SaveAddonlist("addonlist.txt", content)
 
-	fmt.Printf("%+v\n", idxMap)
+	fmt.Println(len(idxMap))
 }
 
 func TestExtractVpkId(t *testing.T) {
@@ -198,4 +210,10 @@ func TestExtractVpkId(t *testing.T) {
 		k, v := ExtractAddonListKeyValue(el)
 		fmt.Printf("%s ---> %s\n", k, v)
 	}
+}
+
+func TestClassify_v1_l4d2(t *testing.T) {
+	vpks := []string{modPath19}
+
+	GetFiles(vpks)
 }

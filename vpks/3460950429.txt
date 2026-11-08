@@ -1,0 +1,45 @@
+3460950429.vpk
+
+
+TheFinals-R357-vpk by
+
+treesize:  1910
+0: wav --> sound/weapons/magnum/gunother --> pistol_slideforward_1
+1: wav --> sound/weapons/magnum/gunother --> pistol_slideback_1
+2: wav --> sound/weapons/magnum/gunother --> pistol_deploy_1
+3: wav --> sound/weapons/magnum/gunother --> pistol_clip_out_1
+4: wav --> sound/weapons/magnum/gunother --> pistol_clip_locked_1
+5: wav --> sound/weapons/magnum/gunother --> pistol_clip_in_1
+6: wav --> sound/weapons/magnum/gunfire --> magnum_shoot
+7: phy --> models/w_models/weapons --> w_desert_eagle
+8: vvd --> models/w_models/weapons --> w_desert_eagle
+9: vvd --> models/v_models --> v_desert_eagle
+10: mdl --> models/w_models/weapons --> w_desert_eagle
+11: mdl --> models/v_models --> v_desert_eagle
+12: vtx --> models/w_models/weapons --> w_desert_eagle.dx90
+13: vtx --> models/v_models --> v_desert_eagle.dx90
+14: vmt --> materials/models/the_finals/r357 --> m_emptyshell
+15: vmt --> materials/models/the_finals/r357 --> mi_weaponmarkings_generic_a
+16: vmt --> materials/models/the_finals/r357 --> mi_revolver_02_weapontext_a
+17: vmt --> materials/models/the_finals/r357 --> mi_default_a_revolver_02_sight_a
+18: vmt --> materials/models/the_finals/r357 --> mi_default_a_revolver_02_main_a
+19: vmt --> materials/models/the_finals/r357 --> mi_default_a_revolver_02_hammer_a
+20: vmt --> materials/models/the_finals/r357 --> mi_default_a_revolver_02_grip_a
+21: vmt --> materials/models/the_finals/r357 --> mi_default_a_revolver_02_cylinder_a
+22: vmt --> materials/models/the_finals/r357 --> mi_default_a_revolver_02_barrel_a
+23: vtf --> materials/models/the_finals/r357 --> t_revolver_02_sight_a_pop
+24: vtf --> materials/models/the_finals/r357 --> t_revolver_02_sight_a_nwo
+25: vtf --> materials/models/the_finals/r357 --> t_revolver_02_main_a_pop
+26: vtf --> materials/models/the_finals/r357 --> t_revolver_02_main_a_nwo
+27: vtf --> materials/models/the_finals/r357 --> t_revolver_02_hammer_a_pop
+28: vtf --> materials/models/the_finals/r357 --> t_revolver_02_hammer_a_nwo
+29: vtf --> materials/models/the_finals/r357 --> t_revolver_02_grip_a_pop
+30: vtf --> materials/models/the_finals/r357 --> t_revolver_02_grip_a_nwo
+31: vtf --> materials/models/the_finals/r357 --> t_revolver_02_cylinder_a_pop
+32: vtf --> materials/models/the_finals/r357 --> t_revolver_02_cylinder_a_nwo
+33: vtf --> materials/models/the_finals/r357 --> t_revolver_02_barrel_a_pop
+34: vtf --> materials/models/the_finals/r357 --> t_revolver_02_barrel_a_nwo
+35: vtf --> materials/models/the_finals/r357 --> m_emptyshell
+36: vtf --> materials/models/the_finals/r357 --> mi_weaponmarkings_generic_a
+37: vtf --> materials/models/the_finals/r357 --> exp
+38: txt -->  --> addoninfo

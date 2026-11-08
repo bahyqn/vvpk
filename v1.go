@@ -256,7 +256,6 @@ func calculateEntryCRC_v1Dev(f *os.File, failedEntries []FailedEntry) ([]FailedE
 		vpkArchive.Entries = append(vpkArchive.Entries, entry)
 		return nil
 	})
-
 	if err != nil {
 		return failedEntries, err
 	}
@@ -284,4 +283,56 @@ func calculateEntryCRC_v1Dev(f *os.File, failedEntries []FailedEntry) ([]FailedE
 	}
 
 	return failedEntries, nil
+}
+
+// GetFiles return []string files inside vpk
+func GetFiles(path []string) {
+	// results := map[string]any{}
+	metadata := []Metadata{}
+
+	for _, item := range path {
+		parseV1ForClassify(item, metadata)
+	}
+}
+
+func parseV1ForClassify(filepath string, metadata []Metadata) error {
+	clear(metadata)
+	metadata = metadata[:0]
+
+	f, err := os.Open(filepath)
+	if err != nil {
+		return fmt.Errorf("open vpk failed: %w", err)
+	}
+	defer f.Close()
+
+	if _, err = f.Seek(8, io.SeekCurrent); err != nil {
+		return err
+	}
+
+	var headerBuf [4]byte
+	if _, err = io.ReadFull(f, headerBuf[:]); err != nil {
+		return fmt.Errorf("read header failed: %w", err)
+	}
+
+	treesize := binary.LittleEndian.Uint32(headerBuf[:])
+
+	fmt.Println("treesize: ", treesize)
+
+	if treesize == 0 {
+		return fmt.Errorf("treesize is zero")
+	}
+
+	treeReader := io.LimitReader(f, int64(treesize))
+	err = walkV1Entries(treeReader, func(m Metadata) error {
+		metadata = append(metadata, m)
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("forloop files failed: %w", err)
+	}
+
+	for i, item := range metadata {
+		fmt.Printf("%d: %s --> %s --> %s\n", i, item.Extension, item.Path, item.Filename)
+	}
+	return nil
 }

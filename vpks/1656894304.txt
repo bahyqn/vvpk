@@ -1,0 +1,31 @@
+1656894304.vpk
+
+insurgency m1911 (suppressed) by zmg
+
+treesize:  1269
+0: wav --> sound/weapons/magnum/gunother --> pistol_slideforward_1
+1: wav --> sound/weapons/magnum/gunother --> pistol_slideback_1
+2: wav --> sound/weapons/magnum/gunother --> pistol_deploy_1
+3: wav --> sound/weapons/magnum/gunother --> pistol_clip_out_1
+4: wav --> sound/weapons/magnum/gunother --> pistol_clip_locked_1
+5: wav --> sound/weapons/magnum/gunother --> pistol_clip_in_1
+6: wav --> sound/weapons/magnum/gunfire --> magnum_shoot
+7: phy --> models/w_models/weapons --> w_desert_eagle
+8: vvd --> models/w_models/weapons --> w_desert_eagle
+9: vvd --> models/v_models --> v_desert_eagle
+10: mdl --> models/w_models/weapons --> w_desert_eagle
+11: mdl --> models/v_models --> v_desert_eagle
+12: vtx --> models/w_models/weapons --> w_desert_eagle.dx90
+13: vtx --> models/v_models --> v_desert_eagle.dx90
+14: vtf --> materials/models/weapons/insurgency/m1911 --> yogsuppressor45_normal
+15: vtf --> materials/models/weapons/insurgency/m1911 --> yogsuppressor45_gloss
+16: vtf --> materials/models/weapons/insurgency/m1911 --> yogsuppressor45_diffuse
+17: vtf --> materials/models/weapons/insurgency/m1911 --> weapon_m1911_nm
+18: vtf --> materials/models/weapons/insurgency/m1911 --> weapon_m1911_dm
+19: vtf --> materials/models/weapons/insurgency/m1911 --> a_laserflash_nm
+20: vtf --> materials/models/weapons/insurgency/m1911 --> a_laserflash_dm
+21: vmt --> materials/models/weapons/insurgency/m1911 --> yogsuppressor45_diffuse
+22: vmt --> materials/models/weapons/insurgency/m1911 --> weapon_m1911_dm
+23: vmt --> materials/models/weapons/insurgency/m1911 --> a_laserflash_dm
+24: txt -->  --> addoninfo
+25: jpg -->  --> addonimage

@@ -1,0 +1,53 @@
+487356805.vpk
+
+COD:GHOSTS M9A1 by Cele
+
+treesize:  2234
+0: wav --> sound/weapons/pistol_silver/gunother --> pistol_silver_deploy_1
+1: wav --> sound/weapons/pistol_silver/gunother --> pistol_deploy_1
+2: wav --> sound/weapons/pistol_silver/gunfire --> pistol_fire
+3: wav --> sound/weapons/pistol/gunother --> pistol_slideforward_1
+4: wav --> sound/weapons/pistol/gunother --> pistol_slideback_1
+5: wav --> sound/weapons/pistol/gunother --> pistol_deploy_1
+6: wav --> sound/weapons/pistol/gunother --> pistol_clip_out_1
+7: wav --> sound/weapons/pistol/gunother --> pistol_clip_locked_1
+8: wav --> sound/weapons/pistol/gunother --> pistol_clip_in_1
+9: wav --> sound/weapons/pistol/gunfire --> pistol_fire
+10: wav --> sound/weapons/pistol/gunfire --> pistol_dual_fire
+11: wav --> sound/weapons/dual_pistol/gunother --> dualpistol_deploy_1
+12: wav --> sound/weapons/dual_pistol/gunother --> dualpistol_clip_out_1
+13: wav --> sound/weapons/dual_pistol/gunother --> dualpistol_clip_in_1
+14: phy --> models/w_models/weapons --> w_pistol_b
+15: phy --> models/w_models/weapons --> w_pistol_a
+16: vvd --> models/w_models/weapons --> w_pistol_b
+17: vvd --> models/w_models/weapons --> w_pistol_a_dual
+18: vvd --> models/w_models/weapons --> w_pistol_a
+19: vvd --> models/v_models --> v_pistola
+20: vvd --> models/v_models --> v_dual_pistola
+21: mdl --> models/w_models/weapons --> w_pistol_b
+22: mdl --> models/w_models/weapons --> w_pistol_a_dual
+23: mdl --> models/w_models/weapons --> w_pistol_a
+24: mdl --> models/v_models --> v_pistola
+25: mdl --> models/v_models --> v_dual_pistola
+26: vtx --> models/w_models/weapons --> w_pistol_b.dx90
+27: vtx --> models/w_models/weapons --> w_pistol_a_dual.dx90
+28: vtx --> models/w_models/weapons --> w_pistol_a.dx90
+29: vtx --> models/v_models --> v_pistola.dx90
+30: vtx --> models/v_models --> v_dual_pistola.dx90
+31: vtf --> materials/models/weapons/v_models/m9a1 --> weapon_m9a1_iw6_2k_s
+32: vtf --> materials/models/weapons/v_models/m9a1 --> weapon_m9a1_iw6_2k_n
+33: vtf --> materials/models/weapons/v_models/m9a1 --> weapon_m9a1_iw6_2k_col
+34: vtf --> materials/models/weapons/v_models/m9a1 --> weapon_inforce_apl_glass_256_col
+35: vtf --> materials/models/weapons/v_models/m9a1 --> weapon_inforce_apl_1k_s
+36: vtf --> materials/models/weapons/v_models/m9a1 --> weapon_inforce_apl_1k_n
+37: vtf --> materials/models/weapons/v_models/m9a1 --> weapon_inforce_apl_1k_col
+38: vtf --> materials/models/weapons/v_models/m9a1 --> nightsight_col
+39: vmt --> materials/models/weapons/w_models/m9a1 --> weapon_m9a1_iw6_2k_col
+40: vmt --> materials/models/weapons/w_models/m9a1 --> weapon_inforce_apl_glass_256_col
+41: vmt --> materials/models/weapons/w_models/m9a1 --> weapon_inforce_apl_1k_col
+42: vmt --> materials/models/weapons/w_models/m9a1 --> nightsight_col
+43: vmt --> materials/models/weapons/v_models/m9a1 --> weapon_m9a1_iw6_2k_col
+44: vmt --> materials/models/weapons/v_models/m9a1 --> weapon_inforce_apl_glass_256_col
+45: vmt --> materials/models/weapons/v_models/m9a1 --> weapon_inforce_apl_1k_col
+46: vmt --> materials/models/weapons/v_models/m9a1 --> nightsight_col
+47: txt -->  --> addoninfo

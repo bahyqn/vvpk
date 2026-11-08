@@ -1,0 +1,48 @@
+2313508534.vpk
+
+
+SIG MG338 by SIG SAUER
+
+
+treesize:  1662
+0: wav --> sound/weapons/machinegun_m60/gunother --> rifle_slideforward
+1: wav --> sound/weapons/machinegun_m60/gunother --> rifle_slideback
+2: wav --> sound/weapons/machinegun_m60/gunother --> rifle_deploy_1
+3: wav --> sound/weapons/machinegun_m60/gunother --> rifle_clip_out_1
+4: wav --> sound/weapons/machinegun_m60/gunother --> rifle_clip_locked_1
+5: wav --> sound/weapons/machinegun_m60/gunother --> rifle_clip_in_1
+6: wav --> sound/weapons/machinegun_m60/gunfire --> machinegun_fire_1_incendiary
+7: wav --> sound/weapons/machinegun_m60/gunfire --> machinegun_fire_1
+8: vvd --> models/w_models/weapons --> w_m60
+9: vvd --> models/v_models --> v_m60
+10: mdl --> models/w_models/weapons --> w_m60
+11: mdl --> models/v_models --> v_m60
+12: vtx --> models/w_models/weapons --> w_m60.sw
+13: vtx --> models/w_models/weapons --> w_m60.dx90
+14: vtx --> models/w_models/weapons --> w_m60.dx80
+15: vtx --> models/v_models --> v_m60.sw
+16: vtx --> models/v_models --> v_m60.dx90
+17: vtx --> models/v_models --> v_m60.dx80
+18: vtf --> materials/models/frontlines_gift/mg338 --> mt_mg338_02_s
+19: vtf --> materials/models/frontlines_gift/mg338 --> mt_mg338_02_n
+20: vtf --> materials/models/frontlines_gift/mg338 --> mt_mg338_02
+21: vtf --> materials/models/frontlines_gift/mg338 --> mt_mg338_01_s
+22: vtf --> materials/models/frontlines_gift/mg338 --> mt_mg338_01_n
+23: vtf --> materials/models/frontlines_gift/mg338 --> mt_mg338_01
+24: vtf --> materials/models/frontlines_gift/mg338 --> mt_lens_elcan_steam_n
+25: vtf --> materials/models/frontlines_gift/mg338 --> mt_lens_elcan_steam
+26: vtf --> materials/models/frontlines_gift/mg338 --> mt_elcanspecterdr_fortune16_s
+27: vtf --> materials/models/frontlines_gift/mg338 --> mt_elcanspecterdr_fortune16_n
+28: vtf --> materials/models/frontlines_gift/mg338 --> mt_elcanspecterdr_fortune16
+29: vtf --> materials/models/frontlines_gift/mg338 --> attachments_s
+30: vtf --> materials/models/frontlines_gift/mg338 --> attachments_n
+31: vtf --> materials/models/frontlines_gift/mg338 --> attachments
+32: vmt --> materials/models/frontlines_gift/mg338 --> mt_mg338_02
+33: vmt --> materials/models/frontlines_gift/mg338 --> mt_mg338_01
+34: vmt --> materials/models/frontlines_gift/mg338 --> mt_lens_elcan_steam
+35: vmt --> materials/models/frontlines_gift/mg338 --> mt_elcanspecterdr_fortune16
+36: vmt --> materials/models/frontlines_gift/mg338 --> bullet_tip
+37: vmt --> materials/models/frontlines_gift/mg338 --> bullet
+38: vmt --> materials/models/frontlines_gift/mg338 --> box
+39: vmt --> materials/models/frontlines_gift/mg338 --> attachments
+40: txt -->  --> addoninfo

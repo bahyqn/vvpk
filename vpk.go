@@ -74,27 +74,11 @@ func (vpk VpkArchive) LengthValidate() uint32 {
 	return len
 }
 
-// Return map[string]string{ "addoninfo.txt": "", "missions: "", "version": "1 or 2"}
+// Return map[string]string{ "addoninfo": "", "missions: "", "version": "1"}
 func OpenVpk(path string) VpkSummary {
-	// file_content := map[string]string{}
-	// files := []string{"addoninfo", "missions/*.txt"}
-
-	// if len(files) == 0 {
-	// 	files = append(files, "addoninfo.txt")
-	// 	files = append(files, "missions/*.txt")
-	// }
-
-	// fmap, err := sliceToMap(files)
-
 	vpkSummary := VpkSummary{
 		Missions: make(map[string]string),
 	}
-
-	// fmt.Println(fmap)
-
-	// if err != nil {
-	// 	return file_content
-	// }
 
 	file, err := os.Open(path)
 	if err != nil {
@@ -102,14 +86,6 @@ func OpenVpk(path string) VpkSummary {
 	}
 	defer file.Close()
 
-	// version, err := detectVersion(file)
-	// version, err := detectVersion(file)
-	// if err != nil {
-	// 	return vpkSummary
-	// }
-
-	// fmap["version"] = strconv.FormatUint(uint64(version), 10)
-	// vpkSummary.VpkVersion = version
 	_ = parseVPK(file, &vpkSummary)
 	return vpkSummary
 }
@@ -177,7 +153,6 @@ func parseVPK(f *os.File, vpkSummary *VpkSummary) error {
 	file_archive := []Metadata{}
 
 	err := walkV1Entries(treeReader, func(m Metadata) error {
-
 		k := strings.ToLower(m.Filename)
 		// currentPos, _ := f.Seek(0, io.SeekCurrent)
 		// fmt.Printf("seek: %d ---> %s\n", currentPos, filepath.Join(m.Path, m.Filename+"."+m.Extension))
@@ -214,7 +189,6 @@ func parseVPK(f *os.File, vpkSummary *VpkSummary) error {
 		buf := make([]byte, el.EntryLength)
 
 		_, err := io.ReadFull(f, buf)
-
 		if err != nil {
 			continue
 		}
@@ -240,7 +214,6 @@ func OpenAddonlist(path string) ([]string, map[string]IdxMap, error) {
 	idxMap := map[string]IdxMap{}
 
 	f, err := os.Open(path)
-
 	if err != nil {
 		return content, idxMap, fmt.Errorf("addonlist path is invalid")
 	}
@@ -270,40 +243,65 @@ func OpenAddonlist(path string) ([]string, map[string]IdxMap, error) {
 	return content, idxMap, nil
 }
 
-func UpdateModStatus(content []string, vpkId string, status string) error {
+func UpdateModStatus(content []string, idx int, status string) error {
 	if status != "0" && status != "1" {
 		return fmt.Errorf("Attention: status only 0 or 1")
 	}
 
-	for i, line := range content {
-		if !strings.Contains(line, vpkId) {
-			continue
-		}
-
-		quoteCount := 0
-		for pos := 0; pos < len(line); pos++ {
-			if line[pos] != '"' {
-				continue
-			}
-
-			quoteCount++
-			if quoteCount == 3 {
-				if pos+1 >= len(line) {
-					return fmt.Errorf("invalid addonlist entry for %q", vpkId)
-				}
-
-				updated := []byte(line)
-				updated[pos+1] = status[0]
-				content[i] = string(updated)
-				return nil
-			}
-		}
-
-		return fmt.Errorf("invalid addonlist entry for %q", vpkId)
+	// 0 "Addonlist.txt
+	// 1 {
+	// 		......
+	//  }
+	if idx >= len(content) || idx <= 1 {
+		return fmt.Errorf("idx is out of the range")
 	}
+
+	row := content[idx]
+
+	rowBytes := []byte(row)
+
+	rowBytes[len(rowBytes)-2] = status[0]
+
+	row = string(rowBytes)
+	content[idx] = row
 
 	return nil
 }
+
+// func UpdateModStatus(content []string, vpkId string, status string) error {
+// 	if status != "0" && status != "1" {
+// 		return fmt.Errorf("Attention: status only 0 or 1")
+// 	}
+
+// 	for i, line := range content {
+// 		if !strings.Contains(line, vpkId) {
+// 			continue
+// 		}
+
+// 		quoteCount := 0
+// 		for pos := 0; pos < len(line); pos++ {
+// 			if line[pos] != '"' {
+// 				continue
+// 			}
+
+// 			quoteCount++
+// 			if quoteCount == 3 {
+// 				if pos+1 >= len(line) {
+// 					return fmt.Errorf("invalid addonlist entry for %q", vpkId)
+// 				}
+
+// 				updated := []byte(line)
+// 				updated[pos+1] = status[0]
+// 				content[i] = string(updated)
+// 				return nil
+// 			}
+// 		}
+
+// 		return fmt.Errorf("invalid addonlist entry for %q", vpkId)
+// 	}
+
+// 	return nil
+// }
 
 func ExtractAddonListKeyValue(rawStr string) (string, string) {
 	first := strings.IndexByte(rawStr, '"')
@@ -334,7 +332,7 @@ func SaveAddonlist(path string, rawSlice []string) error {
 		content += "\n"
 	}
 
-	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		return fmt.Errorf("write addonlist %q failed: %w", path, err)
 	}
 	return nil

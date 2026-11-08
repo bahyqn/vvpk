@@ -1,0 +1,49 @@
+1968764163.vpk
+
+
+[Advanced Bot AI]更多生还者Bot功能 by RogoShum
+
+treesize:  1491
+0: nut --> scripts/vscripts/rayman1103_vslib --> utils
+1: nut --> scripts/vscripts/rayman1103_vslib --> timer_vslib
+2: nut --> scripts/vscripts/rayman1103_vslib --> timer
+3: nut --> scripts/vscripts/rayman1103_vslib --> responserules
+4: nut --> scripts/vscripts/rayman1103_vslib --> player
+5: nut --> scripts/vscripts/rayman1103_vslib --> hud
+6: nut --> scripts/vscripts/rayman1103_vslib --> fileio
+7: nut --> scripts/vscripts/rayman1103_vslib --> entity
+8: nut --> scripts/vscripts/rayman1103_vslib --> easylogic
+9: nut --> scripts/vscripts/ai_taskes --> ai-updatebotfirestate
+10: nut --> scripts/vscripts/ai_taskes --> ai-trytracegascan
+11: nut --> scripts/vscripts/ai_taskes --> ai-trytakegascan
+12: nut --> scripts/vscripts/ai_taskes --> ai-transkit
+13: nut --> scripts/vscripts/ai_taskes --> ai-transitem
+14: nut --> scripts/vscripts/ai_taskes --> ai-shoveinfected
+15: nut --> scripts/vscripts/ai_taskes --> ai-searchtrigger
+16: nut --> scripts/vscripts/ai_taskes --> ai-searchentity
+17: nut --> scripts/vscripts/ai_taskes --> ai-searchbody
+18: nut --> scripts/vscripts/ai_taskes --> ai-saveplayerfrominfected
+19: nut --> scripts/vscripts/ai_taskes --> ai-hitinfected
+20: nut --> scripts/vscripts/ai_taskes --> ai-healinsaferoom
+21: nut --> scripts/vscripts/ai_taskes --> ai-heal
+22: nut --> scripts/vscripts/ai_taskes --> ai-doupgrades
+23: nut --> scripts/vscripts/ai_taskes --> ai-classsingle
+24: nut --> scripts/vscripts/ai_taskes --> ai-classgroup
+25: nut --> scripts/vscripts/ai_taskes --> ai-classbase
+26: nut --> scripts/vscripts/ai_taskes --> ai-checktothrowgen
+27: nut --> scripts/vscripts/ai_taskes --> ai-checktothrowbomb
+28: nut --> scripts/vscripts/ai_taskes --> ai-avoiddanger
+29: nut --> scripts/vscripts/ai_lib --> ai_utils
+30: nut --> scripts/vscripts/ai_lib --> ai_timers
+31: nut --> scripts/vscripts/ai_lib --> ai_navigator
+32: nut --> scripts/vscripts/ai_lib --> ai_menu
+33: nut --> scripts/vscripts/ai_lib --> ai_localization
+34: nut --> scripts/vscripts/ai_lib --> ai_events
+35: nut --> scripts/vscripts/ai_lib --> ai_command
+36: nut --> scripts/vscripts --> scriptedmode_addon
+37: nut --> scripts/vscripts --> director_base_addon
+38: nut --> scripts/vscripts --> aiupdatehandler
+39: md -->  --> botai_readme
+40:   -->  --> botai_license
+41: txt -->  --> addoninfo
+42: jpg -->  --> addonimage
