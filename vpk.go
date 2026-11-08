@@ -314,12 +314,16 @@ func ExtractAddonListKeyValue(rawStr string) (string, string) {
 		return "", ""
 	}
 
+	// workshop\xxx.vpk
 	quotedPath := rawStr[first+1 : first+1+last]
 	filename := quotedPath[strings.LastIndexAny(quotedPath, `/\\`)+1:]
 	if extension := strings.LastIndexByte(filename, '.'); extension >= 0 {
 		filename = filename[:extension]
 	}
 	endIdx := strings.LastIndexAny(rawStr[first+1+last:], `"`)
+	if endIdx == 0 {
+		return "", ""
+	}
 
 	endIdx = first + last + endIdx
 
